@@ -4,7 +4,7 @@ import {
   OverlayLoading,
   SimpleLoading,
   SkeletonLoading,
-} from "@/components/commons/Loading";
+} from "@/common/Loading";
 
 export default function LoginPage() {
   const isLoading = true;
