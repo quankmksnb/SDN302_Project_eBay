@@ -1,9 +1,7 @@
-import React from "react";
-
 // Simple loading with text
 export const SimpleLoading = ({ message }) => {
   return (
-    <div className="min-h-screen flex items-center justify-center flex-col space-y-4">
+    <div className="min-h-screen flex items-center justify-center flex-col space-y-4 bg-black/10">
       <div className="h-12 w-12 border-b-2 border-blue-300 rounded-full animate-spin"></div>
       {message && <p className="text-gray-500 text-lg">{message}</p>}
     </div>
@@ -92,9 +90,9 @@ export const SkeletonLoading = () => {
 };
 
 // Spinner and overlay loading
-export const OverlayLoading = ({ message = "Đang xử lý..." }) => {
+export const OverlayLoading = ({ message = "" }) => {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/15 flex items-center justify-center z-50">
       <div className="flex flex-col items-center space-y-4">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
         <p className="text-white">{message}</p>
@@ -103,33 +101,6 @@ export const OverlayLoading = ({ message = "Đang xử lý..." }) => {
   );
 };
 
-// Loading button
-// export const LoadingButton = ({
-//   isLoading,
-//   children,
-//   onClick,
-//   className = "",
-//   loadingMessage = "Loading...",
-// }) => {
-//   return (
-//     <button
-//       onClick={onClick}
-//       disabled={isLoading}
-//       className={`flex items-center justify-center space-x-2 px-4 py-2 rounded transition duration-200 ${
-//         isLoading
-//           ? "bg-gray-400 cursor-not-allowed"
-//           : "bg-blue-500 hover:bg-blue-600"
-//       } text-white ${className}`}
-//     >
-//       {isLoading && (
-//         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-//       )}
-//       <span>{isLoading ? loadingMessage : children}</span>
-//     </button>
-//   );
-// };
-
-// Component chính - có thể chọn kiểu loading
 const Loading = ({ type = "simple", ...props }) => {
   switch (type) {
     case "simple":
