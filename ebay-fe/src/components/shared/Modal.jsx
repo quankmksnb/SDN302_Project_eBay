@@ -1,4 +1,5 @@
 "use client";
+import useBodyScrollLock from "@/hooks/useBodyScrollLock";
 import { useEffect } from "react";
 
 export default function Modal({
@@ -14,16 +15,7 @@ export default function Modal({
     lg: "max-w-2xl",
     xl: "max-w-4xl",
   };
-
-  // Disable scroll
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => (document.body.style.overflow = "");
-  }, [open]);
+  useBodyScrollLock(open);
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black/50 p-4 "
