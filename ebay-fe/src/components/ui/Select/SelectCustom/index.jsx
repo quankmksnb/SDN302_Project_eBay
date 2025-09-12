@@ -1,5 +1,6 @@
 
 import { Select } from "antd"
+import './SelectCustom.scss'
 
 import PropTypes from "prop-types"
 const SelectCustom = ({ label, children, style, ...rest }) => {

@@ -1,6 +1,7 @@
-import { TreeSelect } from "antd"
+import { TreeSelect } from "antd";
+import "./TreeSelectCustom.scss";
 
-import PropTypes from "prop-types"
+import PropTypes from "prop-types";
 const TreeSelectCustom = ({ label, children, style, ...rest }) => {
   return (
     <TreeSelect
@@ -10,13 +11,13 @@ const TreeSelectCustom = ({ label, children, style, ...rest }) => {
     >
       {children}
     </TreeSelect>
-  )
-}
-export default TreeSelectCustom
+  );
+};
+export default TreeSelectCustom;
 
 TreeSelectCustom.propTypes = {
   style: PropTypes.object,
   label: PropTypes.string,
-}
+};
 
-TreeSelectCustom.defaultProps = { style: {}, label: "" }
+TreeSelectCustom.defaultProps = { style: {}, label: "" };
