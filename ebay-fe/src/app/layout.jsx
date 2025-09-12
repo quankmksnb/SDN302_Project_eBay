@@ -1,9 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.scss";
 import NextTopLoader from "nextjs-toploader";
 import { Suspense } from "react";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import "./globals.scss";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
