@@ -1,7 +1,7 @@
 "use client";
-import Button from "@/common/Button";
-import Loading, { SimpleLoading } from "@/common/Loading";
-import Modal from "@/common/Modal";
+import Button from "@/components/common/Button";
+import Loading from "@/components/common/Loading";
+import Modal from "@/components/common/Modal";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 

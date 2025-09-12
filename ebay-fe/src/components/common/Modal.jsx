@@ -1,5 +1,4 @@
 "use client";
-import Loading from "@/common/Loading";
 import { useEffect } from "react";
 
 export default function Modal({
