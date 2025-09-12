@@ -1,7 +1,7 @@
 "use client";
 import Button from "@/components/ui/Button";
 import Loading from "@/components/shared/Loading";
-import Modal from "@/components/common/Modal";
+import Modal from "@/components/shared/Modal";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
