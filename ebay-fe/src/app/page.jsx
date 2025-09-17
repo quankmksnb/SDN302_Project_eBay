@@ -7,6 +7,7 @@ import SelectCustom from "@/components/ui/Select/SelectCustom";
 import { useState } from "react";
 import TreeSelectCustom from "@/components/ui/Select/TreeSelectCustom";
 import FloatingInput from "@/components/ui/Floating/FloatingInput";
+import { Col, Row } from "antd";
 
 const columns = [
   {
@@ -91,24 +92,28 @@ export default function Home() {
         onChange={setValue}
         placeholder="Chọn loại trái cây"
       />
-
-      <h5>TreeSelect</h5>
-      <TreeSelectCustom
-        treeData={treeData}
-        value={value}
-        onChange={setValue}
-        placeholder="Chọn loại thực phẩm"
-        allowClear
-        treeDefaultExpandAll
-      />
-
-      <h5>Input Floating</h5>
-      <FloatingInput
-        label="Tên đăng nhập"
-        value={value}
-        placeholder="Nhập tên đăng nhập"
-        required
-      />
+      <Row gutter={16}>
+        <Col span={12}>
+          <h5>TreeSelect</h5>
+          <TreeSelectCustom
+            treeData={treeData}
+            value={value}
+            onChange={setValue}
+            placeholder="Chọn loại thực phẩm"
+            allowClear
+            treeDefaultExpandAll
+          />
+        </Col>
+        <Col span={4}>
+          <h5>Input Floating</h5>
+          <FloatingInput
+            label="Tên đăng nhập"
+            value={value}
+            placeholder="Nhập tên đăng nhập"
+            required
+          />
+        </Col>
+      </Row>
     </div>
   );
 }
