@@ -1,9 +1,8 @@
-import { Open_Sans, Montserrat } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.scss";
 import NextTopLoader from "nextjs-toploader";
 import { Suspense } from "react";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import "./globals.scss";
 
 const montserrat = Montserrat({
   subsets: ["latin", "vietnamese"],
@@ -22,11 +21,9 @@ export default function RootLayout({ children }) {
     <html lang="en" className={montserrat.variable}>
       <body>
         <NextTopLoader />
-        <Header />
         <main>
           <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
         </main>
-        <Footer />
       </body>
     </html>
   );
