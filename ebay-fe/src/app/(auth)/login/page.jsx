@@ -28,7 +28,7 @@ export default function LoginPage() {
     >
       <Button onClick={hanldeClickOpen}>Open modal</Button>
       {loading ? (
-        <Loading type="overlay"/>
+        <Loading type="overlay" />
       ) : (
         <Modal
           size="xl"
@@ -51,7 +51,7 @@ export default function LoginPage() {
             </Button>
             <Button
               size="sm"
-              className="h-[40px] !min-w-[97px] text-[14px]"
+              className="h-[40px] !min-w-[100px] text-[14px]"
               onClick={backToHome}
             >
               Let's go

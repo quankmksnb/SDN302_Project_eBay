@@ -22,15 +22,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
-        <NextTopLoader />
-        <Header />
-        <main>
-          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
-        </main>
-        <Footer />
-      </body>
-    </html>
+    <>
+      <NextTopLoader />
+      <Header />
+      <main>
+        <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+      </main>
+      <Footer />
+    </>
   );
 }
