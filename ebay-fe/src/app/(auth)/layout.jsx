@@ -2,8 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.scss";
 import NextTopLoader from "nextjs-toploader";
 import { Suspense } from "react";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import Header2 from "@/components/layout/Header2";
+import Footer2 from "@/components/layout/Footer2";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,11 +24,11 @@ export default function RootLayout({ children }) {
   return (
     <>
       <NextTopLoader />
-      <Header />
+      <Header2 />
       <main>
         <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
       </main>
-      <Footer />
+      <Footer2/>
     </>
   );
 }
