@@ -1,16 +1,14 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat } from "next/font/google";
+import "./globals.scss";
 import NextTopLoader from "nextjs-toploader";
 import { Suspense } from "react";
 import "./globals.scss";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-montserrat",
+  display: "swap",
 });
 
 export const metadata = {
@@ -20,7 +18,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={montserrat.variable}>
       <body>
         <NextTopLoader />
         <main>
