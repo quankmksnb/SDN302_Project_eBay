@@ -89,7 +89,7 @@ export default function EbayLoginForm() {
             </button>
 
             {/* Apple */}
-            {/* <button className="w-full flex items-center justify-center px-4 py-3 border border-black-300 rounded-full hover:bg-gray-50 transition-colors duration-200">
+            <button className="w-full flex items-center justify-center px-4 py-3 border border-black-300 rounded-full hover:bg-gray-50 transition-colors duration-200">
               <svg
                 className="w-5 h-5 mr-3"
                 fill="currentColor"
@@ -100,7 +100,7 @@ export default function EbayLoginForm() {
               <span className="text-gray-700 font-bold">
                 Continue with Apple
               </span>
-            </button> */}
+            </button>
           </div>
 
           {/* Stay signed in checkbox */}
