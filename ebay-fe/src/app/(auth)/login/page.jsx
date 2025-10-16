@@ -16,7 +16,7 @@ export default function EbayLoginForm() {
           <div className="text-2xl font-bold mb-2">Sign in to your account</div>
           <p className="text-sm text-black-600">
             New to eBay?
-            <a href="#" className="text-black-600 underline hover:no-underline">
+            <a href="/register" className="text-black-600 underline hover:no-underline">
               Create account
             </a>
           </p>
