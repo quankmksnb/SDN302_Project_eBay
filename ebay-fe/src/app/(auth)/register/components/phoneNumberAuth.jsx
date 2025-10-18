@@ -1,4 +1,3 @@
-"use client";
 import { useState } from "react";
 import { Button, Input, Typography, Space, Select } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
@@ -60,18 +59,14 @@ export default function PhoneVerificationForm() {
           </Text>
 
           {/* Continue Button */}
-          <Button
-            type="primary"
-            size="large"
-            block
-            onClick={handleContinue}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Continue
-          </Button>
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-full transition-colors duration-200">
-            Continue
-          </button>
+          <div class="flex justify-end">
+            <button
+              class="w-40 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-full transition-colors duration-200"
+              onClick={handleContinue}
+            >
+              Continue
+            </button>
+          </div>
         </Space>
       </div>
     </div>
