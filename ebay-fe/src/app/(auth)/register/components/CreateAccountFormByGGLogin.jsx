@@ -1,15 +1,26 @@
-"use client";
 import { useState } from "react";
-import { Button, Typography, Space, Divider } from "antd";
+import { Button, Typography, Space, Input } from "antd";
 
 const { Title, Text, Link } = Typography;
 
 export default function CreateAccountForm() {
-  const [email] = useState("phamhoangduc2004@gmail.com");
-  const [userName] = useState("Huy Đoàn");
+  const [showChangeForm, setShowChangeForm] = useState(false);
+  const [firstName, setFirstName] = useState("Huy");
+  const [lastName, setLastName] = useState("Đoàn");
+  const [email, setEmail] = useState("phamhoangduc2004@gmail.com");
+  const [userName, setUserName] = useState("Huy Đoàn");
+
+  const handleChange = () => {
+    setShowChangeForm(true);
+  };
 
   const handleCreateAccount = () => {
-    console.log("Creating account with:", { email, userName });
+    if (showChangeForm) {
+      setUserName(`${firstName} ${lastName}`);
+      setShowChangeForm(false);
+    } else {
+      console.log("Creating account with:", { email, userName });
+    }
   };
 
   return (
@@ -26,36 +37,87 @@ export default function CreateAccountForm() {
             </Text>
           </div>
 
-          {/* User Info Section */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <Space direction="vertical" size="small" className="w-full">
-              <div>
-                <Text strong>{userName}</Text>
+          {/* Conditional Rendering */}
+          {!showChangeForm ? (
+            <>
+              {/* User Info Section */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <Space direction="vertical" size="small" className="w-full">
+                  <div>
+                    <Text strong>{userName}</Text>
+                  </div>
+                  <Text type="secondary" className="text-sm">
+                    {email}
+                  </Text>
+                  <Link underline className="text-blue-600" onClick={handleChange}>
+                    Change
+                  </Link>
+                </Space>
               </div>
-              <Text type="secondary" className="text-sm">
-                {email}
-              </Text>
-              <Link underline className="text-blue-600">
-                Change
-              </Link>
-            </Space>
-          </div>
 
-          {/* Already using eBay Section */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <Space direction="vertical" size="small" className="w-full">
-              <Text>
+              {/* Already using eBay Section */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <Space direction="vertical" size="small" className="w-full">
+                  <Text>
+                    Already using eBay?{" "}
+                    <Link underline className="text-blue-600">
+                      Link to an existing account
+                    </Link>
+                  </Text>
+                </Space>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Form Inputs */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    First name
+                  </label>
+                  <Input
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Last name
+                  </label>
+                  <Input
+                    placeholder="Last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <Input
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              {/* Already using eBay Section */}
+              <Text type="secondary" className="text-sm">
                 Already using eBay?{" "}
                 <Link underline className="text-blue-600">
                   Link to an existing account
                 </Link>
               </Text>
-            </Space>
-          </div>
+            </>
+          )}
 
           {/* Agreement Text */}
           <Text type="secondary" className="text-xs block">
-            By creating an account, you agree to our{" "}
+            By Creating an account, you agree to our{" "}
             <Link underline className="text-blue-600">
               User Agreement
             </Link>{" "}
@@ -74,7 +136,7 @@ export default function CreateAccountForm() {
             onClick={handleCreateAccount}
             className="bg-blue-600 hover:bg-blue-700 h-12 rounded-full font-semibold"
           >
-            Create account
+            {showChangeForm ? "Create account" : "Create account"}
           </Button>
         </Space>
       </div>
