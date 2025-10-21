@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Product from "./Product.js";
 import User from "./User.js";
-
+const { Schema } = mongoose;
 const reviewSchema = mongoose.Schema({
   productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
   reviewerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
