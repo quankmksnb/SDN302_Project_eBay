@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.scss";
 import NextTopLoader from "nextjs-toploader";
@@ -28,7 +28,13 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
 
   // Kiểm tra path có phải /login hoặc /register
-  const isAuthPage = ["/login", "/register"].includes(pathname);
+  const isAuthPage = [
+    "/login",
+    "/login/forgot-password",
+    "/login/verify-email",
+    "/register",
+    "/register/verify-email",
+  ].includes(pathname);
 
   return (
     <>
