@@ -9,6 +9,31 @@ import {
 } from "@ant-design/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getProducts } from "@/api/services/productService";
+import { getCategories } from "@/api/services/categoryService";
+
+const categoryImages = {
+  Automotive:
+    "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/hjsAAeSwgDlo2len/$_57.JPG",
+  "Books & Media":
+    "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/MloAAeSwr4po2len/$_57.JPG",
+  Collectibles:
+    "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/oyoAAeSwYnFo2len/$_57.JPG",
+  "Computers & Tablets":
+    "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/~R4AAeSwPNZo2len/$_57.JPG",
+  Electronics:
+    "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/KBcAAeSwCSlo2ldK/$_57.JPG",
+  Fashion:
+    "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/hpYAAeSwg5Vo2len/$_57.JPG",
+  "Health & Beauty":
+    "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/FQAAAeSwGrFo2lfS/$_57.JPG",
+  "Home & Garden":
+    "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/L0YAAeSwHgZo2len/$_57.JPG",
+  "Sporting Goods":
+    "https://i.ebayimg.com/images/g/5MgAAeSwKtdoraa4/s-l2400.png",
+  "Toys & Hobbies":
+    "https://i.ebayimg.com/thumbs/images/g/A00AAeSwiaJojMG9/s-l1200.webp",
+};
 
 export default function Home() {
   const carouselRef = useRef(null);
@@ -28,68 +53,60 @@ export default function Home() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [order, setOrder] = useState("desc");
 
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit,
+        category: selectedCategory,
+        minPrice,
+        maxPrice,
+        name: searchName,
+        sortBy,
+        order,
+      });
 
-  const categoryImages = {
-    "Automotive": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/hjsAAeSwgDlo2len/$_57.JPG",
-    "Books & Media": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/MloAAeSwr4po2len/$_57.JPG",
-    "Collectibles": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/oyoAAeSwYnFo2len/$_57.JPG",
-    "Computers & Tablets": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/~R4AAeSwPNZo2len/$_57.JPG",
-    "Electronics": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/KBcAAeSwCSlo2ldK/$_57.JPG",
-    "Fashion": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/hpYAAeSwg5Vo2len/$_57.JPG",
-    "Health & Beauty": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/FQAAAeSwGrFo2lfS/$_57.JPG",
-    "Home & Garden": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/L0YAAeSwHgZo2len/$_57.JPG",
-    "Sporting Goods": "https://i.ebayimg.com/images/g/5MgAAeSwKtdoraa4/s-l2400.png",
-    "Toys & Hobbies": "https://i.ebayimg.com/thumbs/images/g/A00AAeSwiaJojMG9/s-l1200.webp",
+      const res = await getProducts(params);
+      const data = res.data;
+
+      if (data.success) {
+        setProducts(data.products);
+        setTotalPages(data.totalPages);
+      } else {
+        setProducts([]);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await getCategories();
+      setCategories(res.data.categories || []);
+    } catch (error) {
+      console.error("Error fetching Categories:", error);
+    }
   };
 
   useEffect(() => {
-    async function loadCategories() {
-      try {
-        const res = await fetch("http://localhost:9999/categories");
-        const data = await res.json();
-        setCategories(data.categories || []);
-      } catch (err) {
-        console.error("Fetch error:", err);
-      }
-    }
-    loadCategories();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const query = new URLSearchParams({
-          page: currentPage,
-          limit,
-          category: selectedCategory,
-          minPrice,
-          maxPrice,
-          name: searchName,
-          sortBy,
-          order,
-        });
-
-        const res = await fetch(`http://localhost:9999/products?${query.toString()}`);
-        const data = await res.json();
-
-        if (data.success) {
-          setProducts(data.products);
-          setTotalPages(data.totalPages);
-        } else {
-          setProducts([]);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProducts();
-  }, [currentPage, selectedCategory, minPrice, maxPrice, searchName, sortBy, order]);
-
-
+  }, [
+    currentPage,
+    selectedCategory,
+    minPrice,
+    maxPrice,
+    searchName,
+    sortBy,
+    order,
+  ]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
@@ -108,7 +125,7 @@ export default function Home() {
   };
 
   const onChange = (current) => {
-    console.log("slide:", current);
+    // console.log("slide:", current);
   };
 
   return (
@@ -137,7 +154,8 @@ export default function Home() {
                       Celebrate eBay's anniversary
                     </h2>
                     <p className="text-lg text-gray-300 mb-8">
-                      30 years of collecting. Millions of items. Endless adventures.
+                      30 years of collecting. Millions of items. Endless
+                      adventures.
                     </p>
                     <button className="bg-white text-[#191919] font-semibold rounded-full px-8 py-3 hover:bg-gray-100 transition w-fit text-base">
                       Keep collecting
@@ -163,7 +181,8 @@ export default function Home() {
                       Whatever you're into, it's here
                     </h2>
                     <p className="text-lg text-[#562F01] mb-8">
-                      Turn a wrench, get a tech upgrade, and find everything you love.
+                      Turn a wrench, get a tech upgrade, and find everything you
+                      love.
                     </p>
                     <a
                       href="#"
@@ -175,11 +194,24 @@ export default function Home() {
                   <div className="w-3/5 h-full flex items-center justify-center">
                     <div className="grid grid-cols-3 gap-8">
                       {[
-                        { img: "https://i.ebayimg.com/images/g/tgUAAOSwkKJnycJx/s-l300.webp", label: "Motors" },
-                        { img: "https://i.ebayimg.com/images/g/ZC8AAOSwU8dnycJ2/s-l300.webp", label: "Electronics" },
-                        { img: "https://i.ebayimg.com/images/g/YkcAAOSwd0FnycJ4/s-l300.webp", label: "Collectibles" }
+                        {
+                          img: "https://i.ebayimg.com/images/g/tgUAAOSwkKJnycJx/s-l300.webp",
+                          label: "Motors",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/ZC8AAOSwU8dnycJ2/s-l300.webp",
+                          label: "Electronics",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/YkcAAOSwd0FnycJ4/s-l300.webp",
+                          label: "Collectibles",
+                        },
                       ].map((item, idx) => (
-                        <a key={idx} href="#" className="flex flex-col items-center group">
+                        <a
+                          key={idx}
+                          href="#"
+                          className="flex flex-col items-center group"
+                        >
                           <div className="w-32 h-32 flex items-center justify-center">
                             <img
                               src={item.img}
@@ -205,7 +237,8 @@ export default function Home() {
                       All your faves are here
                     </h2>
                     <p className="text-lg text-gray-900 mb-8">
-                      Refresh your space, elevate your style and power your work.
+                      Refresh your space, elevate your style and power your
+                      work.
                     </p>
                     <a
                       href="#"
@@ -217,11 +250,24 @@ export default function Home() {
                   <div className="w-3/5 h-full flex items-center justify-center">
                     <div className="grid grid-cols-3 gap-8">
                       {[
-                        { img: "https://i.ebayimg.com/images/g/apEAAOSwVN1n4r~-/s-l300.webp", label: "Home & Garden" },
-                        { img: "https://i.ebayimg.com/images/g/Pr8AAOSw4E5n4sAC/s-l300.webp", label: "Fashion" },
-                        { img: "https://i.ebayimg.com/images/g/kUgAAOSwPedn4sAG/s-l300.webp", label: "Business" }
+                        {
+                          img: "https://i.ebayimg.com/images/g/apEAAOSwVN1n4r~-/s-l300.webp",
+                          label: "Home & Garden",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/Pr8AAOSw4E5n4sAC/s-l300.webp",
+                          label: "Fashion",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/kUgAAOSwPedn4sAG/s-l300.webp",
+                          label: "Business",
+                        },
                       ].map((item, idx) => (
-                        <a key={idx} href="#" className="flex flex-col items-center group">
+                        <a
+                          key={idx}
+                          href="#"
+                          className="flex flex-col items-center group"
+                        >
                           <div className="w-32 h-32 flex items-center justify-center">
                             <img
                               src={item.img}
@@ -259,11 +305,24 @@ export default function Home() {
                   <div className="w-3/5 h-full flex items-center justify-center">
                     <div className="grid grid-cols-3 gap-8">
                       {[
-                        { img: "https://i.ebayimg.com/images/g/5-8AAeSwpvJotaqH/s-l300.webp", label: "Trading cards" },
-                        { img: "https://i.ebayimg.com/images/g/PkIAAeSwZ05otaqK/s-l300.webp", label: "Toys" },
-                        { img: "https://i.ebayimg.com/images/g/7ykAAeSwYXRotaqP/s-l300.webp", label: "Sports cards" }
+                        {
+                          img: "https://i.ebayimg.com/images/g/5-8AAeSwpvJotaqH/s-l300.webp",
+                          label: "Trading cards",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/PkIAAeSwZ05otaqK/s-l300.webp",
+                          label: "Toys",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/7ykAAeSwYXRotaqP/s-l300.webp",
+                          label: "Sports cards",
+                        },
                       ].map((item, idx) => (
-                        <a key={idx} href="#" className="flex flex-col items-center group">
+                        <a
+                          key={idx}
+                          href="#"
+                          className="flex flex-col items-center group"
+                        >
                           <div className="w-32 h-32 flex items-center justify-center">
                             <img
                               src={item.img}
@@ -317,7 +376,9 @@ export default function Home() {
       {/* Categories Section */}
       <section className="w-full bg-white py-12 mt-8">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-8 text-gray-900">Explore the catalog</h2>
+          <h2 className="text-3xl font-bold mb-8 text-gray-900">
+            Explore the catalog
+          </h2>
 
           <div className="relative">
             <button
@@ -362,7 +423,10 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <div className="flex flex-wrap items-center gap-4 mb-6" style={{ justifyContent: "center" }}>
+      <div
+        className="flex flex-wrap items-center gap-4 mb-6"
+        style={{ justifyContent: "center" }}
+      >
         {/* Filter by category */}
         <select
           value={selectedCategory}
@@ -371,7 +435,9 @@ export default function Home() {
         >
           <option value="">All categories</option>
           {categories.map((c) => (
-            <option key={c._id} value={c.name}>{c.name}</option>
+            <option key={c._id} value={c.name}>
+              {c.name}
+            </option>
           ))}
         </select>
 
@@ -421,7 +487,7 @@ export default function Home() {
         </select>
 
         <button
-          onClick={() => setCurrentPage(1)} 
+          onClick={() => setCurrentPage(1)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           Apply
@@ -431,7 +497,9 @@ export default function Home() {
       {/* Products Section */}
       <section className="w-full py-12">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-8 text-gray-900">All products</h2>
+          <h2 className="text-3xl font-bold mb-8 text-gray-900">
+            All products
+          </h2>
 
           {products.length === 0 ? (
             <div className="text-center py-20">
@@ -474,17 +542,18 @@ export default function Home() {
             </div>
           )}
         </div>
-      </section >
+      </section>
 
       {/* Pagination */}
       <div className="flex justify-center items-center gap-4 mt-8">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`px-4 py-2 rounded-lg border ${currentPage === 1
-            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-            : "bg-white hover:bg-gray-50"
-            }`}
+          className={`px-4 py-2 rounded-lg border ${
+            currentPage === 1
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-white hover:bg-gray-50"
+          }`}
         >
           Previous
         </button>
@@ -496,15 +565,15 @@ export default function Home() {
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`px-4 py-2 rounded-lg border ${currentPage === totalPages
-            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-            : "bg-white hover:bg-gray-50"
-            }`}
+          className={`px-4 py-2 rounded-lg border ${
+            currentPage === totalPages
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-white hover:bg-gray-50"
+          }`}
         >
           Next
         </button>
       </div>
-
 
       <style jsx global>{`
         .slick-slider .slick-dots {
@@ -539,6 +608,6 @@ export default function Home() {
           scrollbar-width: none;
         }
       `}</style>
-    </div >
+    </div>
   );
 }

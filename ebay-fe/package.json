@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "antd": "^5.27.3",
+    "axios": "^1.13.1",
+    "dotenv": "^17.2.3",
     "next": "15.5.2",
     "nextjs-toploader": "^3.9.17",
     "react": "19.1.0",
