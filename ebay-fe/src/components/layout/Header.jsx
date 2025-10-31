@@ -2,20 +2,150 @@
 import Button from "@/components/ui/Button";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import { UserOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import { logoutUser } from "@/services/authService";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 export default function Header() {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+
+  useEffect(() => {
+    // Lấy thông tin user từ localStorage
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setUser(userData);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      // Lấy refreshToken từ localStorage hoặc user object
+      const stored =
+        localStorage.getItem("user") || sessionStorage.getItem("user");
+      const data = stored ? JSON.parse(stored) : null;
+      const refreshToken =
+        data?.refreshToken ||
+        localStorage.getItem("refreshToken") ||
+        sessionStorage.getItem("refreshToken");
+
+      if (refreshToken) {
+        await logoutUser(refreshToken);
+      }
+    } catch (error) {
+      console.error("❌ Logout failed:", error);
+    } finally {
+      // Dọn dẹp local storage dù logout thành công hay không
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
+
+      setUser(null);
+      window.location.href = "/";
+    }
+  };
+
   return (
     <header className="">
       <nav className="border-b border-[#e5e5e5] flex justify-center px-[24px]">
-        <div className="container flex justify-between items-center h-[32px] ">
+        <div className="container flex justify-between items-center h-[32px]">
           <ul className="flex gap-[8px]">
-            <li className="nav-link">
-              Hi (
-              <Link href={"/login"} className="text-[#0968f6] font-medium underline">
-                Sign-in
-              </Link>
-              )
+            <li className="nav-link relative">
+              {!isLoading && (
+                <>
+                  {user ? (
+                    <div
+                      className="relative"
+                      onMouseEnter={() => setShowUserMenu(true)}
+                      onMouseLeave={() => setShowUserMenu(false)}
+                    >
+                      <span className="font-medium cursor-pointer">
+                        Hi {user.fullname}!
+                      </span>
+                      <Image
+                        src={"/icons/chevron_down.svg"}
+                        width={10}
+                        height={10}
+                        alt=""
+                        className="inline ml-1"
+                      />
+
+                      {showUserMenu && (
+                        <div
+                          className="absolute top-full left-0 bg-white shadow-lg rounded-lg w-[250px] z-50 border border-gray-200"
+                          onMouseEnter={() => setShowUserMenu(true)}
+                          onMouseLeave={() => setShowUserMenu(false)}
+                        >
+                          <div className="p-4 border-b border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                                <UserOutlined className="text-gray-500 text-2xl" />
+                              </div>
+
+                              <div className="flex-1">
+                                <div className="font-semibold text-gray-900 text-sm">
+                                  {user.fullname}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="py-2">
+                            <Link
+                              href="/account/settings"
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              Account settings
+                            </Link>
+                            <button
+                              onClick={() => setShowChangePassword(true)}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              Change password
+                            </button>
+                            
+                            <button
+                              onClick={handleLogout}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              Sign out
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      Hi (
+                      <Link
+                        href={"/login"}
+                        className="text-[#0968f6] font-medium underline"
+                      >
+                        Sign-in
+                      </Link>
+                      /
+                      <Link
+                        href={"/register"}
+                        className="text-[#0968f6] font-medium underline"
+                      >
+                        Sign-up
+                      </Link>
+                      )
+                    </>
+                  )}
+                </>
+              )}
             </li>
             <li>
               <Link className="nav-link" href={"/"}>
@@ -35,7 +165,7 @@ export default function Header() {
             <li>
               <Link className="nav-link" href={"/"}>
                 Help & Contact
-              </Link>{" "}
+              </Link>
             </li>
           </ul>
           <ul className="flex items-center gap-[12px]">
@@ -95,7 +225,7 @@ export default function Header() {
                 height={48}
               />
             </Link>
-            <div className="flex">
+            <div className="flex cursor-pointer">
               <span className="text-[#707070] text-[12px]/[14px] font-semibold line w-[70px]">
                 Shop by category
               </span>
@@ -136,6 +266,10 @@ export default function Header() {
           </form>
         </div>
       </div>
+      <ChangePasswordModal
+        open={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
     </header>
   );
 }
