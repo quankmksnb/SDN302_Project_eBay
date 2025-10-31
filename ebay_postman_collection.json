@@ -1,0 +1,108 @@
+{
+	"info": {
+		"_postman_id": "2ae0b5c0-6e65-4343-933e-6cee024077e9",
+		"name": "SDN302",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48300184",
+		"_collection_link": "https://vinhhvhe180184-970657.postman.co/workspace/VinhHa's-Workspace~4dd1131a-550a-400c-8c4e-ff80aff5ee70/collection/48300184-2ae0b5c0-6e65-4343-933e-6cee024077e9?action=share&source=collection_link&creator=48300184"
+	},
+	"item": [
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "getAllCategories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9999/categories",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"categories"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "getAllProducts",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"vinghv\",\r\n  \"password\": \"A123456a\"\r\n}"
+						},
+						"url": {
+							"raw": "localhost:9999/products",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getProductsByCategoryId",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:9999/products/category/68f6587dce81f243332a473c",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"products",
+								"category",
+								"68f6587dce81f243332a473c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getProductById",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:9999/products/68f65ef8ce81f243332a474e",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"products",
+								"68f65ef8ce81f243332a474e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": []
+		}
+	]
+}
