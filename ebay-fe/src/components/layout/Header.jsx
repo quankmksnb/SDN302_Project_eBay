@@ -6,12 +6,15 @@ import { UserOutlined } from "@ant-design/icons";
 import React, { useState, useEffect } from "react";
 import { logoutUser } from "@/services/authService";
 import ChangePasswordModal from "./ChangePasswordModal";
+import NotificationModal from "./NotificationModal";
 
 export default function Header() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
 
   useEffect(() => {
     // Lấy thông tin user từ localStorage
@@ -114,7 +117,12 @@ export default function Header() {
                             >
                               Change password
                             </button>
-                            
+                            <Link
+                              href="/order/history"
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              Order history
+                            </Link>
                             <button
                               onClick={handleLogout}
                               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -201,10 +209,19 @@ export default function Header() {
                 />
               </Link>
             </li>
-            <li>
-              <Link className="nav-link" href={"/"}>
-                <Image src={"/icons/bell.svg"} width={20} height={20} alt="" />
+            <li
+              className="nav-link relative"
+              onMouseEnter={() => setShowNotifications(true)}
+              onMouseLeave={() => setShowNotifications(false)}
+            >
+              <Link href="/account/settings#notification">
+                <Image src="/icons/bell.svg" width={20} height={20} alt="Bell icon" />
               </Link>
+
+              <NotificationModal
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+              />
             </li>
             <li>
               <Link className="nav-link" href={"/"}>
