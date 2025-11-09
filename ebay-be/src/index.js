@@ -32,8 +32,8 @@ app.use(passport.session());
 app.use("/api/login", loginGGRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/products", productRoutes);
-app.use("/categories", categoryRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).send("Hello World from eBay BE!");
