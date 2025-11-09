@@ -6,6 +6,7 @@ B1: git clone https://github.com/quankmksnb/SDN302_Project_eBay.git
 B2: git checkout develop                  "develop là tên nhánh, sau muốn về nhánh mình thì thay vào chộ develop"
 B3: Tạo files .env:
     FE: 
+    NEXT_PUBLIC_API_URL=http://localhost:9999/ (thay bằng backend của mình)
     BE: 
     PORT=9999
     HOST_NAME=locallhost

@@ -3,7 +3,9 @@ import { useState, useRef, useEffect } from "react";
 import { Button, Typography, Space, Input } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import { verifyEmail, resendOtp } from "@/services/authService"; // ✅ thêm dòng này
+
+// 🧩 Import AuthService
+import { verifyEmail, resendOtp } from "@/services/authService";
 
 const { Title, Text, Link } = Typography;
 
@@ -18,6 +20,7 @@ export default function SecurityCodeForm() {
   const [email, setEmail] = useState("");
   const inputRefs = useRef([]);
 
+  // Lấy email từ sessionStorage
   useEffect(() => {
     const storedEmail = sessionStorage.getItem("registerEmail");
     if (!storedEmail) {
@@ -27,6 +30,7 @@ export default function SecurityCodeForm() {
     setEmail(storedEmail);
   }, [router]);
 
+  // Đếm ngược resend
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -61,7 +65,7 @@ export default function SecurityCodeForm() {
     setCode(newCode);
   };
 
-  // ✅ Verify OTP (dùng service)
+  // ✅ Verify OTP
   const handleVerify = async () => {
     const otp = code.join("");
     if (otp.length !== 6) {
@@ -83,13 +87,17 @@ export default function SecurityCodeForm() {
       setTimeout(() => router.push("/login"), 2000);
     } catch (err) {
       console.error("Verify error:", err);
-      setError(err.response?.data?.message || "Verification failed.");
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "Verification failed. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Resend OTP (dùng service)
+  // ✅ Resend OTP
   const handleResend = async () => {
     setLoading(true);
     setError("");
@@ -97,6 +105,7 @@ export default function SecurityCodeForm() {
 
     try {
       await resendOtp(email);
+
       setSuccess("New OTP sent to your email!");
       setCountdown(120);
       setCanResend(false);
@@ -104,7 +113,9 @@ export default function SecurityCodeForm() {
       inputRefs.current[0]?.focus();
     } catch (err) {
       console.error("Resend error:", err);
-      setError(err.response?.data?.message || "Failed to resend OTP");
+      const message =
+        err.response?.data?.message || err.message || "Failed to resend OTP";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -120,6 +131,7 @@ export default function SecurityCodeForm() {
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="shadow-sm p-8 w-full max-w-md">
         <Space direction="vertical" size="large" className="w-full">
+          {/* Header */}
           <div className="flex items-center gap-4">
             <Button
               type="text"
@@ -136,18 +148,19 @@ export default function SecurityCodeForm() {
             We sent a security code to <strong>{email}</strong>.
           </Text>
 
+          {/* Error / Success */}
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-700 text-sm">{error}</p>
             </div>
           )}
-
           {success && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-green-700 text-sm">{success}</p>
             </div>
           )}
 
+          {/* Code Inputs */}
           <div className="flex gap-2 justify-center">
             {code.map((digit, i) => (
               <Input
@@ -180,6 +193,7 @@ export default function SecurityCodeForm() {
             {loading ? "Verifying..." : "Verify Code"}
           </Button>
 
+          {/* Countdown */}
           <Text type="secondary" className="text-center block">
             {canResend ? (
               <span>You can resend the code now</span>

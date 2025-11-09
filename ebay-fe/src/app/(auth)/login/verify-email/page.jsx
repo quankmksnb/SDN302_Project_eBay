@@ -3,7 +3,11 @@ import { useState, useRef, useEffect } from "react";
 import { Button, Typography, Space, Input } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import { verifyEmail, resendOtp } from "@/services/authService"; // ✅ thêm dòng này
+import ResetPassword from "./components/resetPassword";
+
+// 🧩 Import services
+import { verifyEmail, resendOtp } from "@/services/authService";
+import { forgotPassword } from "@/services/userService";
 
 const { Title, Text, Link } = Typography;
 
@@ -16,32 +20,48 @@ export default function SecurityCodeForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [email, setEmail] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const inputRefs = useRef([]);
 
+  // 📧 Lấy email từ sessionStorage
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem("registerEmail");
-    if (!storedEmail) {
+    const resetEmail = sessionStorage.getItem("resetPasswordEmail");
+    const registerEmail = sessionStorage.getItem("registerEmail");
+
+    if (resetEmail) {
+      setEmail(resetEmail);
+      setIsResetPassword(true);
+    } else if (registerEmail) {
+      setEmail(registerEmail);
+      setIsResetPassword(false);
+    } else {
       router.push("/register");
-      return;
     }
-    setEmail(storedEmail);
   }, [router]);
 
+  // ⏰ Đếm ngược
   useEffect(() => {
     if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     } else {
       setCanResend(true);
     }
   }, [countdown]);
 
+  // 🔡 Nhập OTP
   const handleChange = (index, value) => {
     if (value && !/^\d$/.test(value)) return;
+
     const newCode = [...code];
     newCode[index] = value;
     setCode(newCode);
-    if (value && index < 5) inputRefs.current[index + 1]?.focus();
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
     setError("");
   };
 
@@ -53,18 +73,18 @@ export default function SecurityCodeForm() {
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").slice(0, 6);
     const newCode = [...code];
-    for (let i = 0; i < pasted.length; i++) {
-      if (/^\d$/.test(pasted[i])) newCode[i] = pasted[i];
+    for (let i = 0; i < pastedData.length; i++) {
+      if (/^\d$/.test(pastedData[i])) newCode[i] = pastedData[i];
     }
     setCode(newCode);
   };
 
-  // ✅ Verify OTP (dùng service)
+  // ✅ VERIFY OTP
   const handleVerify = async () => {
-    const otp = code.join("");
-    if (otp.length !== 6) {
+    const otpCode = code.join("");
+    if (otpCode.length !== 6) {
       setError("Please enter all 6 digits");
       return;
     }
@@ -74,61 +94,83 @@ export default function SecurityCodeForm() {
     setSuccess("");
 
     try {
-      await verifyEmail({ email, otp });
+      const { data } = await verifyEmail({ email, otp: otpCode });
 
-      setSuccess("Email verified successfully! Redirecting to login...");
-      sessionStorage.removeItem("registerEmail");
-      sessionStorage.removeItem("userId");
+      setSuccess(data.message || "Email verified successfully!");
 
-      setTimeout(() => router.push("/login"), 2000);
+      setTimeout(() => {
+        if (isResetPassword) {
+          setShowResetPassword(true); // 👉 Hiện form reset password
+        } else {
+          sessionStorage.removeItem("registerEmail");
+          sessionStorage.removeItem("userId");
+          router.push("/login");
+        }
+      }, 1000);
     } catch (err) {
-      console.error("Verify error:", err);
-      setError(err.response?.data?.message || "Verification failed.");
+      const message =
+        err.response?.data?.message || "Verification failed. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Resend OTP (dùng service)
+  // ✅ RESEND OTP
   const handleResend = async () => {
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      await resendOtp(email);
-      setSuccess("New OTP sent to your email!");
+      if (isResetPassword) {
+        const { data } = await forgotPassword(email);
+        setSuccess(data.message || "New OTP sent to your email!");
+      } else {
+        const { data } = await resendOtp(email);
+        setSuccess(data.message || "New OTP sent to your email!");
+      }
+
       setCountdown(120);
       setCanResend(false);
       setCode(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     } catch (err) {
-      console.error("Resend error:", err);
-      setError(err.response?.data?.message || "Failed to resend OTP");
+      const message =
+        err.response?.data?.message || "Failed to resend OTP. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCountdown = (s) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec < 10 ? "0" : ""}${sec}`;
+  const formatCountdown = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
+
+  // ✅ Nếu verify xong và là flow reset password
+  if (showResetPassword && isResetPassword) {
+    return <ResetPassword email={email} />;
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="shadow-sm p-8 w-full max-w-md">
         <Space direction="vertical" size="large" className="w-full">
+          {/* Header */}
           <div className="flex items-center gap-4">
             <Button
               type="text"
               icon={<LeftOutlined />}
-              onClick={() => router.push("/register")}
+              onClick={() =>
+                router.push(isResetPassword ? "/login" : "/register")
+              }
               className="p-0"
             />
             <Title level={3} className="m-0">
-              Enter security code
+              {isResetPassword ? "Verify your email" : "Enter security code"}
             </Title>
           </div>
 
@@ -148,14 +190,15 @@ export default function SecurityCodeForm() {
             </div>
           )}
 
+          {/* OTP Inputs */}
           <div className="flex gap-2 justify-center">
-            {code.map((digit, i) => (
+            {code.map((digit, index) => (
               <Input
-                key={i}
-                ref={(el) => (inputRefs.current[i] = el)}
+                key={index}
+                ref={(el) => (inputRefs.current[index] = el)}
                 value={digit}
-                onChange={(e) => handleChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={handlePaste}
                 maxLength={1}
                 className="w-12 h-12 text-center text-lg font-semibold"
@@ -204,11 +247,7 @@ export default function SecurityCodeForm() {
           )}
 
           <div className="text-center">
-            <Link
-              underline
-              onClick={() => console.log("Need help clicked")}
-              className="text-gray-700"
-            >
+            <Link underline onClick={() => console.log("Need help clicked")}>
               Need help?
             </Link>
           </div>
