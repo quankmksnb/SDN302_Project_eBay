@@ -36,7 +36,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 
 app.get("/", (req, res) => {
-  res.status(200).send("Hello World from eBay BE!");
+  res.status(200).send("Wellcome to eBay BE!");
 });
 
 
