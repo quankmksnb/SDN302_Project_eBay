@@ -10,6 +10,8 @@ import userRoutes from "./routes/userRoutes.js";
 import loginGGRoutes from "./routes/loginGGRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
 
 connectDB();
 
@@ -32,14 +34,14 @@ app.use(passport.session());
 app.use("/api/login", loginGGRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/cart", cartRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).send("Wellcome to eBay BE!");
 });
-
-
 
 app.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
