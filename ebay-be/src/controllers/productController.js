@@ -14,7 +14,6 @@ export const getAllProducts = async (req, res) => {
       minPrice,
       maxPrice,
       name,
-      sortBy = "createdAt",
       order = "desc",
     } = req.query;
 
@@ -51,7 +50,7 @@ export const getAllProducts = async (req, res) => {
     const products = await Product.find(query)
       .populate("categoryId", "name")
       .populate("sellerId", "username email avatarURL")
-      .sort({ [sortBy]: sortOrder })
+      .sort({ price: sortOrder })
       .skip(skip)
       .limit(Number(limit));
 
