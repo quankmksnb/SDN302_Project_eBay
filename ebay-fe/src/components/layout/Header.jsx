@@ -52,6 +52,7 @@ export default function Header() {
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
+      fetchNotifications();
       try {
         const userData = JSON.parse(userStr);
         setUser(userData);
@@ -59,7 +60,6 @@ export default function Header() {
         console.error("Error parsing user data:", error);
       }
     }
-    fetchNotifications();
     setIsLoading(false);
   }, []);
   const handleSearch = (e) => {
@@ -72,7 +72,6 @@ export default function Header() {
   };
   const handleLogout = async () => {
     try {
-      // Lấy refreshToken từ localStorage hoặc user object
       const stored =
         localStorage.getItem("user") || sessionStorage.getItem("user");
       const data = stored ? JSON.parse(stored) : null;
@@ -87,7 +86,6 @@ export default function Header() {
     } catch (error) {
       console.error("❌ Logout failed:", error);
     } finally {
-      // Dọn dẹp local storage dù logout thành công hay không
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
