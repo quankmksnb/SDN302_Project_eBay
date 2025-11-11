@@ -33,10 +33,12 @@ export default function Header() {
     // init cart count
     const initCartCount = async () => {
       try {
-        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+        const accessToken =
+          localStorage.getItem("accessToken") ||
+          sessionStorage.getItem("accessToken");
         if (accessToken) {
           const data = await cartService.getCart();
-          const items = data?.items || data?.cart || [];
+          const items = data?.cart?.items || [];
           const count = items.reduce((s, it) => s + (it.quantity || 0), 0);
           setCartCount(count);
         } else {
@@ -55,7 +57,9 @@ export default function Header() {
   useEffect(() => {
     const handler = async () => {
       try {
-        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+        const accessToken =
+          localStorage.getItem("accessToken") ||
+          sessionStorage.getItem("accessToken");
         if (accessToken) {
           const data = await cartService.getCart();
           const items = data?.items || data?.cart || [];

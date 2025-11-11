@@ -33,7 +33,7 @@ const Cart = () => {
           sessionStorage.getItem("accessToken");
         if (accessToken) {
           const data = await cartService.getCart();
-          const items = data?.items || data?.cart || [];
+          const items = data?.cart?.items || [];
           setCartItems(items);
         } else {
           const items = cartService.getLocalCart();
@@ -55,7 +55,7 @@ const Cart = () => {
           sessionStorage.getItem("accessToken");
         if (accessToken) {
           const data = await cartService.getCart();
-          const items = data?.items || data?.cart || [];
+          const items = data?.cart?.items || [];
           setCartItems(items);
         } else {
           const items = cartService.getLocalCart();
@@ -251,7 +251,21 @@ const Cart = () => {
                 </div>
               </div>
 
-              <button className="w-full bg-[#3665f3] text-white font-semibold py-3 mt-5 rounded-full hover:bg-[#2954d2] transition-all duration-200">
+              <button
+                onClick={() => {
+                  const hasToken =
+                    localStorage.getItem("accessToken") ||
+                    sessionStorage.getItem("accessToken");
+                  if (!hasToken) {
+                    // Nếu chưa login → ép login và giữ lại đường dẫn checkout
+                    window.location.href = `/login?redirect=/checkout`;
+                  } else {
+                    // Nếu đã login → đi tiếp checkout
+                    window.location.href = "/checkout";
+                  }
+                }}
+                className="w-full bg-[#3665f3] text-white font-semibold py-3 mt-5 rounded-full hover:bg-[#2954d2] transition-all duration-200"
+              >
                 Go to checkout
               </button>
 
