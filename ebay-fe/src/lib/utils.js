@@ -40,4 +40,8 @@ export function formatDate(dateString) {
   return `${hours}:${minutes} ${day}-${month}-${year}`;
 }
 
-
+export const getUserFromStorage = () => {
+  const userStr =
+    localStorage.getItem("user") || sessionStorage.getItem("user");
+  return userStr ? JSON.parse(userStr) : null;
+};

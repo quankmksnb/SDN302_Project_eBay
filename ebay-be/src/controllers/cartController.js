@@ -7,12 +7,29 @@ import Cart from "../models/Cart.js";
 export const getCart = async (req, res) => {
   try {
     const userId = req.user.id;
-    let cart = await Cart.findOne({ userId }).populate("items.productId");
+    let cart = await Cart.findOne({ userId })
+      .populate({
+        path: "items.productId",
+        populate: {
+          path: "sellerId",
+          select: "username",
+        },
+      })
+      .lean();
 
     if (!cart) {
       cart = await Cart.create({ userId, items: [] });
     }
-
+    const formatted = cart.items.map((item) => ({
+      productId: item.productId._id,
+      images: item.productId.images,
+      price: item.productId.price,
+      description: item.productId.description,
+      quantity: item.quantity,
+      sellerId: item.productId.sellerId,
+      title: item.productId.title,
+    }));
+    cart.items = formatted;
     return res.status(200).json({ success: true, cart });
   } catch (error) {
     console.error("Error getting cart:", error);
@@ -193,7 +210,9 @@ export const mergeGuestCart = async (req, res) => {
     const { items = [] } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ success: false, message: "No items to merge" });
+      return res
+        .status(400)
+        .json({ success: false, message: "No items to merge" });
     }
 
     let cart = await Cart.findOne({ userId });
@@ -201,11 +220,16 @@ export const mergeGuestCart = async (req, res) => {
 
     for (const it of items) {
       if (!it?.productId || !it?.quantity) continue;
-      const idx = cart.items.findIndex(i => i.productId.toString() === String(it.productId));
+      const idx = cart.items.findIndex(
+        (i) => i.productId.toString() === String(it.productId)
+      );
       if (idx > -1) {
         cart.items[idx].quantity += Number(it.quantity) || 1;
       } else {
-        cart.items.push({ productId: it.productId, quantity: Number(it.quantity) || 1 });
+        cart.items.push({
+          productId: it.productId,
+          quantity: Number(it.quantity) || 1,
+        });
       }
     }
     cart.updatedAt = Date.now();
@@ -216,10 +240,12 @@ export const mergeGuestCart = async (req, res) => {
       success: true,
       message: "Cart merged successfully",
       cart,
-      count: cart.items.reduce((s,i)=>s+i.quantity,0),
+      count: cart.items.reduce((s, i) => s + i.quantity, 0),
     });
   } catch (error) {
     console.error("Merge cart error:", error);
-    return res.status(500).json({ success: false, message: "Server error while merging cart" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error while merging cart" });
   }
 };
