@@ -17,6 +17,7 @@ export default function RootLayout({ children }) {
     "/register",
     "/register/verify-email",
     "/login/google",
+    "/checkout",
   ];
 
   const shouldHideHeaderFooter = hideHeaderFooterRoutes.includes(pathname);

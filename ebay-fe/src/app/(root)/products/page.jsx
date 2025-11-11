@@ -2,18 +2,19 @@
 import React, { useEffect, useState } from "react";
 import { getProducts } from "@/services/productService";
 import { getCategories } from "@/services/categoryService";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ProductList() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [search, setSearch] = useState("");
+const searchParams = useSearchParams();
   const [order, setOrder] = useState("asc");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [viewMode, setViewMode] = useState("list"); // 'list' or 'grid'
   const router = useRouter();
+  const search = searchParams.get("search") || "";
 
   // Generate random sold count for each product
   const getRandomSold = () => Math.floor(Math.random() * 1000) + 1;
@@ -53,23 +54,6 @@ export default function ProductList() {
 
   return (
     <div className="bg-white min-h-screen font-sans" style={{ fontFamily: "'Market Sans', 'Helvetica Neue', Arial, sans-serif" }}>
-      {/* Header Search Bar */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Search for anything"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 border-2 border-gray-800 rounded-full px-6 py-2.5 focus:outline-none focus:border-blue-500"
-            />
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-full font-semibold transition-colors">
-              Search
-            </button>
-          </div>
-        </div>
-      </div>
 
       <div className="container mx-auto px-4 py-6">
         <div className="flex gap-6">
