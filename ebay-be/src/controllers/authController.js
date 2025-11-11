@@ -8,6 +8,7 @@ import {
   generateRefreshToken,
 } from "../utils/generateToken.js";
 import Coupon from "../models/Coupon.js";
+import { createNotification } from "../helpers/notificationHelper.js";
 
 // 🧩 Bước 1: Đăng ký người dùng
 export const registerUser = async (req, res) => {
