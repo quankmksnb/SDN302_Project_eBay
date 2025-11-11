@@ -4,6 +4,9 @@ import FloatingInput from "@/components/ui/Floating/FloatingInput";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser, saveTokens, loginWithGoogle } from "@/services/authService";
+import { syncLocalCartToServer } from "@/lib/cartLocal";
+import api from "@/services";
+import cartService from "@/services/cartService";
 
 export default function EbayLoginForm() {
   const router = useRouter();
@@ -22,7 +25,6 @@ export default function EbayLoginForm() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    // ✅ Validate form
     if (!formData.email.trim()) {
       setError("Please enter your email or username");
       return;
@@ -48,7 +50,6 @@ export default function EbayLoginForm() {
         email: formData.email,
         password: formData.password,
       });
-
       const data = res.data;
 
       if (staySignedIn) {
@@ -56,10 +57,12 @@ export default function EbayLoginForm() {
         localStorage.setItem("user", JSON.stringify(data.user));
       } else {
         saveTokens(data.accessToken, data.refreshToken);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        sessionStorage.setItem("user", JSON.stringify(data.user));
       }
+      await syncLocalCartToServer(api, cartService.getCart);
 
-      // 🔁 Kiểm tra redirect param (nếu có từ ?redirect=)
+      window.dispatchEvent(new Event("cart_updated"));
+
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get("redirect") || "/";
 
@@ -77,8 +80,10 @@ export default function EbayLoginForm() {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     loginWithGoogle();
+    await syncLocalCartToServer(api);
+    window.dispatchEvent(new Event("cart_updated"));
   };
 
   return (
