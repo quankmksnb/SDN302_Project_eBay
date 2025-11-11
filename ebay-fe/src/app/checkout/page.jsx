@@ -22,7 +22,7 @@ const CheckoutPage = () => {
     try {
       const data = await cartService.getCartForCheckout();
       setCart(data.cart);
-    } catch (error) {
+      } catch (error) {
       console.error(error);
     }
   };
