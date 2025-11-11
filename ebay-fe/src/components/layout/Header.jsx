@@ -15,9 +15,7 @@ export default function Header() {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-
   useEffect(() => {
-    // Lấy thông tin user từ localStorage
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
@@ -215,7 +213,12 @@ export default function Header() {
               onMouseLeave={() => setShowNotifications(false)}
             >
               <Link href="/account/settings#notification">
-                <Image src="/icons/bell.svg" width={20} height={20} alt="Bell icon" />
+                <Image
+                  src="/icons/bell.svg"
+                  width={20}
+                  height={20}
+                  alt="Bell icon"
+                />
               </Link>
 
               <NotificationModal

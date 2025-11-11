@@ -7,6 +7,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/generateToken.js";
+import Coupon from "../models/Coupon.js";
 
 // 🧩 Bước 1: Đăng ký người dùng
 export const registerUser = async (req, res) => {
@@ -34,6 +35,37 @@ export const registerUser = async (req, res) => {
 
     // Gửi OTP qua email
     await sendEmailOtp(email);
+
+    // Creat Coupon WELCOME
+    let welcomeCoupon = await Coupon.findOne({ code: "WELCOME" });
+
+    if (!welcomeCoupon) {
+      const now = new Date();
+      const end = new Date();
+      end.setFullYear(end.getFullYear() + 1);
+      welcomeCoupon = await Coupon.create({
+        code: "WELCOME",
+        discountPercent: 25,
+        startDate: now,
+        endDate: end,
+        type: "new-user",
+        maxUsagePerUser: 1,
+      });
+    }
+
+    newUser.availableCoupons = [welcomeCoupon._id];
+
+    await newUser.save();
+
+    await createNotification({
+      targetType: "single",
+      userId: newUser._id,
+      title: "🎉Welcome to eBay!",
+      message:
+        "You have received a WELCOME coupon code for 25% off your first order. Use it now to save!",
+      link: "/coupons",
+      data: { couponCode: "WELCOME", discount: 25 },
+    });
 
     res.status(201).json({
       message: "User registered successfully. Please verify your email.",
