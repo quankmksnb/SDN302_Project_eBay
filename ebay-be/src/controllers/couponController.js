@@ -149,15 +149,32 @@ export const getCouponsByUser = async (req, res) => {
   try {
     const userId = req.user.id;
     const now = new Date();
+    const user = await User.findById(userId).select("availableCoupons").lean();
+    console.log(user);
+    if (!user || !user.availableCoupons || user.availableCoupons.length === 0) {
+      return res.status(404).json({ coupons: [] });
+    }
 
     const coupons = await Coupon.find({
+      _id: { $in: user.availableCoupons },
       status: "active",
       startDate: { $lte: now },
       endDate: { $gte: now },
-      $or: [{ type: "global" }, { assignedTo: userId }],
     }).lean();
 
-    res.status(200).json({ coupons });
+    const formatted = coupons.map((coupon) => ({
+      _id: coupon._id,
+      code: coupon.code,
+      discountPercent: 25,
+      startDate: coupon.discountPercent,
+      endDate: coupon.endDate,
+      maxUsagePerUser: coupon.maxUsagePerUser,
+      status: coupon.status,
+      productIds: [],
+      type: coupon.type,
+      minOrderValue: 0,
+    }));
+    res.status(200).json({ myCoupons: formatted });
   } catch (error) {
     console.error("Error fetching coupons by user:", error);
     res.status(500).json({ message: "Server error" });

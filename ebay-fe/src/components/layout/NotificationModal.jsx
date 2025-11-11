@@ -28,7 +28,7 @@ export default function NotificationModal({
           {notifications.length === 0 ? (
             <>
               <div className="p-3 border-b border-gray-100 font-semibold text-gray-800 flex justify-between items-center">
-                Thông báo
+                Notifications
               </div>
               <div className="max-h-[360px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                 <div className="text-sm text-gray-800 font-medium italic text-center py-[30px]">
@@ -39,7 +39,7 @@ export default function NotificationModal({
           ) : (
             <>
               <div className="p-3 border-b border-gray-100 font-semibold text-gray-800 flex justify-between items-center">
-                Thông báo
+                Notifications
                 <span className="text-xs text-blue-600 cursor-pointer hover:underline"></span>
               </div>
 

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Coupon from "./Coupon.js";
 
 const userSchema = new mongoose.Schema(
   {

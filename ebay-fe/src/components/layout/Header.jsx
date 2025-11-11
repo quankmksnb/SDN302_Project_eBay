@@ -269,7 +269,7 @@ export default function Header() {
                 />
               </Link>
 
-             <NotificationModal
+              <NotificationModal
                 router
                 isOpen={showNotifications}
                 onClose={() => setShowNotifications(false)}
