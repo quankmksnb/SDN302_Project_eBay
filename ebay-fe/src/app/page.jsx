@@ -1,5 +1,7 @@
 "use client";
 
+import HomePage from "@/app/(root)/home/page";
+
 export default function Home() {
-  return <div className="h-[1000px]"></div>;
+  return <HomePage></HomePage>;
 }
