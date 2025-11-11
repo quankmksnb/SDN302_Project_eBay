@@ -8,6 +8,8 @@ import { logoutUser } from "@/services/authService";
 import ChangePasswordModal from "./ChangePasswordModal";
 import NotificationModal from "./NotificationModal";
 import { useRouter } from "next/navigation";
+import { getNotifications, maskAsRead } from "@/services/notificationService";
+import { timeAgo } from "@/lib/utils";
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -15,6 +17,35 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotification] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      console.log(data);
+      setUnreadCount(data.unReadCount);
+      setNotification(
+        data.notifications.map((noti) => ({
+          ...noti,
+          time: timeAgo(noti.time),
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const handleClickNoti = async (id, link) => {
+    try {
+      const data = await maskAsRead(id);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      fetchNotifications();
+      router.push(link);
+    }
+  };
+
   const [search, setSearch] = useState("");
   const router = useRouter();
 
@@ -28,6 +59,7 @@ export default function Header() {
         console.error("Error parsing user data:", error);
       }
     }
+    fetchNotifications();
     setIsLoading(false);
   }, []);
   const handleSearch = (e) => {
@@ -222,6 +254,12 @@ export default function Header() {
               onMouseEnter={() => setShowNotifications(true)}
               onMouseLeave={() => setShowNotifications(false)}
             >
+              {unreadCount > 0 && (
+                <span className="text-red-500 text-[12px] font-semibold absolute top-[-3px] right-[7px]">
+                  {unreadCount}
+                </span>
+              )}
+
               <Link href="/account/settings#notification">
                 <Image
                   src="/icons/bell.svg"
@@ -231,9 +269,12 @@ export default function Header() {
                 />
               </Link>
 
-              <NotificationModal
+             <NotificationModal
+                router
                 isOpen={showNotifications}
                 onClose={() => setShowNotifications(false)}
+                notifications={notifications}
+                handleClick={handleClickNoti}
               />
             </li>
             <li>

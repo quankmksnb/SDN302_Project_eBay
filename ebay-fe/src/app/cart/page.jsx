@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 const Cart = () => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [cart, setCart] = useState({});
+
   const cartItems = [
     {
       id: 1,
