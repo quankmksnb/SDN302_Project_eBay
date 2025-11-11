@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 import { logoutUser } from "@/services/authService";
 import ChangePasswordModal from "./ChangePasswordModal";
 import NotificationModal from "./NotificationModal";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -14,7 +15,8 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-
+  const [search, setSearch] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     // Lấy thông tin user từ localStorage
@@ -29,7 +31,14 @@ export default function Header() {
     }
     setIsLoading(false);
   }, []);
-
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (search.trim() !== "") {
+      router.push(`/products?search=${encodeURIComponent(search.trim())}`);
+    } else {
+      router.push("/products");
+    }
+  };
   const handleLogout = async () => {
     try {
       // Lấy refreshToken từ localStorage hoặc user object
@@ -254,7 +263,7 @@ export default function Header() {
               />
             </div>
           </div>
-          <form className="flex w-full items-center gap-[16px]">
+          <form onSubmit={handleSearch}  className="flex w-full items-center gap-[16px]">
             <div className="w-full flex items-center border-[2px] border-[#191919] rounded-full h-[44px] overflow-hidden">
               <div className="pl-4">
                 <Image
@@ -268,6 +277,8 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Search for anything"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="flex-1 px-3 outline-none text-gray-700 placeholder-gray-400"
               />
             </div>
