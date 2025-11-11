@@ -1,5 +1,7 @@
 "use client";
+import { getUserFromStorage } from "@/lib/utils";
 import cartService from "@/services/cartService";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 const QuantityCounter = ({ initialQuantity, onQuantityChange }) => {
@@ -53,6 +55,7 @@ const QuantityCounter = ({ initialQuantity, onQuantityChange }) => {
 const Cart = () => {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState([]);
+  const router = useRouter();
 
   const USD_TO_VND_RATE = 26300;
 
@@ -73,8 +76,12 @@ const Cart = () => {
       setLoading(false);
     }
   };
+  const hanldeNavigate = () => {
+    const user = getUserFromStorage();
+    if (!user) return router.push("/login");
+    router.push("/checkout");
+  };
 
-  // HÀM TÍNH TOÁN SUMMARY (TOTAL)
   const calculateSummary = () => {
     const totalItemsPriceUSD = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -169,8 +176,8 @@ const Cart = () => {
 
                 <div className="flex justify-between gap-4">
                   <img
-                    src={item.images ? item.images[0] : ""}
-                    alt={item.name}
+                    src={item.images[0]}
+                    alt={item.title}
                     className="w-[110px] h-[110px] object-cover rounded-lg border"
                   />
 
@@ -179,7 +186,7 @@ const Cart = () => {
                       href="#"
                       className="text-[#0654ba] font-semibold mt-1 hover:underline leading-snug"
                     >
-                      {item.name}
+                      {item.title}
                     </a>
 
                     <p className="text-[13px] text-gray-600">{item.variant}</p>
@@ -253,7 +260,10 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <button className="w-full bg-[#3665f3] text-white font-semibold py-3 mt-5 rounded-full hover:bg-[#2954d2] transition-all duration-200">
+                <button
+                  onClick={hanldeNavigate}
+                  className="w-full bg-[#3665f3] text-white font-semibold py-3 mt-5 rounded-full hover:bg-[#2954d2] transition-all duration-200"
+                >
                   Go to checkout
                 </button>
 
