@@ -1,6 +1,6 @@
-import Notification from "../models/Notification";
-import UserNotification from "../models/UserNotification";
-import User from "../models/User";
+import Notification from "../models/Notification.js";
+import UserNotification from "../models/UserNotification.js";
+import User from "../models/User.js";
 
 /**
  * Helper function to create new Notification
