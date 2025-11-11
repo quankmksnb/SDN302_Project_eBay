@@ -1,9 +1,12 @@
 import { SHIPPING_TOTAL_USD, USD_TO_VND_RATE } from "@/lib/constants";
 import React, { useState } from "react";
 import cartService from "@/services/cartService";
+import ShipTo from "@/components/ui/CheckOut/ShipTo";
+import { useRouter } from "next/navigation";
 
 const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
   const cartItems = cart.items || [];
+  const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
   const totalItemsCount = cart.totalItems || 0;
 
@@ -139,26 +142,7 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
           />
           <h1 className="text-2xl font-semibold">Checkout</h1>
         </div>
-        <p className="text-sm text-gray-500">
-          How do you like our checkout?{" "}
-          <a href="#" className="text-[#3665f3] hover:underline font-medium">
-            Give us feedback
-          </a>
-        </p>
-      </div>
-
-      <div className="w-full bg-[#fff8e5] py-3 flex justify-center border-b border-yellow-300">
-        <div className="w-[90%] max-w-[1200px] flex justify-between items-center">
-          <p className="text-[15px] text-[#111820]">
-            Coupon, max. discount $120.{" "}
-            <a href="#" className="text-[#3665f3] hover:underline">
-              See details
-            </a>
-          </p>
-          <button className="px-5 py-2 border border-[#111820]/20 rounded-full bg-[#fff] text-[15px] font-medium hover:bg-gray-50">
-            Apply coupon
-          </button>
-        </div>
+        <p className="text-sm text-gray-500"></p>
       </div>
 
       {/* ==== MAIN CONTENT (Giữ nguyên) ==== */}
@@ -343,6 +327,7 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
             </div>
 
             <div className="text-[14px] w-100 space-y-3 mb-[50px]">
+              <span className="font-bold text-[18px]">Coupons:</span>
               {Array.isArray(coupons) ? (
                 <>
                   {coupons.map((coupon) => (
@@ -350,10 +335,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                       className="flex items-center gap-2 cursor-pointer"
                       key={coupon._id}
                     >
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 accent-[#3665f3]"
-                      />
                       <span>{coupon.code ? coupon.code : ""}</span>
                       <span className="ml-auto text-gray-500 text-sm">
                         Available discount: {coupon.discountPercent}%
