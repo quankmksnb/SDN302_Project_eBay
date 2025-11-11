@@ -9,8 +9,11 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { getCategories } from "@/services/categoryService";
+import ItemsCategory from "@/components/ui/CategoriesPicker/ListItemCategory";
+import Cart from "@/components/ui/ShoppingCart/Cart";
+import Checkout from "@/components/ui/CheckOut/Checkout";
 
-export default function Home() {
+export default function HomePage() {
   const carouselRef = useRef(null);
   const [autoPlay, setAutoPlay] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -18,16 +21,26 @@ export default function Home() {
   const scrollRef = useRef(null);
 
   const categoryImages = {
-    "Automotive": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/hjsAAeSwgDlo2len/$_57.JPG",
-    "Books & Media": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/MloAAeSwr4po2len/$_57.JPG",
-    "Collectibles": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/oyoAAeSwYnFo2len/$_57.JPG",
-    "Computers & Tablets": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/~R4AAeSwPNZo2len/$_57.JPG",
-    "Electronics": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/KBcAAeSwCSlo2ldK/$_57.JPG",
-    "Fashion": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/hpYAAeSwg5Vo2len/$_57.JPG",
-    "Health & Beauty": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/FQAAAeSwGrFo2lfS/$_57.JPG",
-    "Home & Garden": "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/L0YAAeSwHgZo2len/$_57.JPG",
-    "Sporting Goods": "https://i.ebayimg.com/images/g/5MgAAeSwKtdoraa4/s-l2400.png",
-    "Toys & Hobbies": "https://i.ebayimg.com/thumbs/images/g/A00AAeSwiaJojMG9/s-l1200.webp",
+    Automotive:
+      "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/hjsAAeSwgDlo2len/$_57.JPG",
+    "Books & Media":
+      "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/MloAAeSwr4po2len/$_57.JPG",
+    Collectibles:
+      "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/oyoAAeSwYnFo2len/$_57.JPG",
+    "Computers & Tablets":
+      "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/~R4AAeSwPNZo2len/$_57.JPG",
+    Electronics:
+      "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/KBcAAeSwCSlo2ldK/$_57.JPG",
+    Fashion:
+      "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/hpYAAeSwg5Vo2len/$_57.JPG",
+    "Health & Beauty":
+      "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/FQAAAeSwGrFo2lfS/$_57.JPG",
+    "Home & Garden":
+      "https://i.ebayimg.com/00/s/Mjg4WDI4OA==/z/L0YAAeSwHgZo2len/$_57.JPG",
+    "Sporting Goods":
+      "https://i.ebayimg.com/images/g/5MgAAeSwKtdoraa4/s-l2400.png",
+    "Toys & Hobbies":
+      "https://i.ebayimg.com/thumbs/images/g/A00AAeSwiaJojMG9/s-l1200.webp",
   };
 
   useEffect(() => {
@@ -54,9 +67,7 @@ export default function Home() {
     setAutoPlay((p) => !p);
   };
 
-  const onChange = (current) => {
-    console.log("slide:", current);
-  };
+  const onChange = (current) => {};
 
   return (
     <div className="flex flex-col bg-gray-50 min-h-screen">
@@ -84,7 +95,8 @@ export default function Home() {
                       Celebrate eBay's anniversary
                     </h2>
                     <p className="text-lg text-gray-300 mb-8">
-                      30 years of collecting. Millions of items. Endless adventures.
+                      30 years of collecting. Millions of items. Endless
+                      adventures.
                     </p>
                     <button className="bg-white text-[#191919] font-semibold rounded-full px-8 py-3 hover:bg-gray-100 transition w-fit text-base">
                       Keep collecting
@@ -110,7 +122,8 @@ export default function Home() {
                       Whatever you're into, it's here
                     </h2>
                     <p className="text-lg text-[#562F01] mb-8">
-                      Turn a wrench, get a tech upgrade, and find everything you love.
+                      Turn a wrench, get a tech upgrade, and find everything you
+                      love.
                     </p>
                     <a
                       href="#"
@@ -122,11 +135,24 @@ export default function Home() {
                   <div className="w-3/5 h-full flex items-center justify-center">
                     <div className="grid grid-cols-3 gap-8">
                       {[
-                        { img: "https://i.ebayimg.com/images/g/tgUAAOSwkKJnycJx/s-l300.webp", label: "Motors" },
-                        { img: "https://i.ebayimg.com/images/g/ZC8AAOSwU8dnycJ2/s-l300.webp", label: "Electronics" },
-                        { img: "https://i.ebayimg.com/images/g/YkcAAOSwd0FnycJ4/s-l300.webp", label: "Collectibles" }
+                        {
+                          img: "https://i.ebayimg.com/images/g/tgUAAOSwkKJnycJx/s-l300.webp",
+                          label: "Motors",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/ZC8AAOSwU8dnycJ2/s-l300.webp",
+                          label: "Electronics",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/YkcAAOSwd0FnycJ4/s-l300.webp",
+                          label: "Collectibles",
+                        },
                       ].map((item, idx) => (
-                        <a key={idx} href="#" className="flex flex-col items-center group">
+                        <a
+                          key={idx}
+                          href="#"
+                          className="flex flex-col items-center group"
+                        >
                           <div className="w-32 h-32 flex items-center justify-center">
                             <img
                               src={item.img}
@@ -152,7 +178,8 @@ export default function Home() {
                       All your faves are here
                     </h2>
                     <p className="text-lg text-gray-900 mb-8">
-                      Refresh your space, elevate your style and power your work.
+                      Refresh your space, elevate your style and power your
+                      work.
                     </p>
                     <a
                       href="#"
@@ -164,11 +191,24 @@ export default function Home() {
                   <div className="w-3/5 h-full flex items-center justify-center">
                     <div className="grid grid-cols-3 gap-8">
                       {[
-                        { img: "https://i.ebayimg.com/images/g/apEAAOSwVN1n4r~-/s-l300.webp", label: "Home & Garden" },
-                        { img: "https://i.ebayimg.com/images/g/Pr8AAOSw4E5n4sAC/s-l300.webp", label: "Fashion" },
-                        { img: "https://i.ebayimg.com/images/g/kUgAAOSwPedn4sAG/s-l300.webp", label: "Business" }
+                        {
+                          img: "https://i.ebayimg.com/images/g/apEAAOSwVN1n4r~-/s-l300.webp",
+                          label: "Home & Garden",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/Pr8AAOSw4E5n4sAC/s-l300.webp",
+                          label: "Fashion",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/kUgAAOSwPedn4sAG/s-l300.webp",
+                          label: "Business",
+                        },
                       ].map((item, idx) => (
-                        <a key={idx} href="#" className="flex flex-col items-center group">
+                        <a
+                          key={idx}
+                          href="#"
+                          className="flex flex-col items-center group"
+                        >
                           <div className="w-32 h-32 flex items-center justify-center">
                             <img
                               src={item.img}
@@ -206,11 +246,24 @@ export default function Home() {
                   <div className="w-3/5 h-full flex items-center justify-center">
                     <div className="grid grid-cols-3 gap-8">
                       {[
-                        { img: "https://i.ebayimg.com/images/g/5-8AAeSwpvJotaqH/s-l300.webp", label: "Trading cards" },
-                        { img: "https://i.ebayimg.com/images/g/PkIAAeSwZ05otaqK/s-l300.webp", label: "Toys" },
-                        { img: "https://i.ebayimg.com/images/g/7ykAAeSwYXRotaqP/s-l300.webp", label: "Sports cards" }
+                        {
+                          img: "https://i.ebayimg.com/images/g/5-8AAeSwpvJotaqH/s-l300.webp",
+                          label: "Trading cards",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/PkIAAeSwZ05otaqK/s-l300.webp",
+                          label: "Toys",
+                        },
+                        {
+                          img: "https://i.ebayimg.com/images/g/7ykAAeSwYXRotaqP/s-l300.webp",
+                          label: "Sports cards",
+                        },
                       ].map((item, idx) => (
-                        <a key={idx} href="#" className="flex flex-col items-center group">
+                        <a
+                          key={idx}
+                          href="#"
+                          className="flex flex-col items-center group"
+                        >
                           <div className="w-32 h-32 flex items-center justify-center">
                             <img
                               src={item.img}
@@ -264,7 +317,9 @@ export default function Home() {
       {/* Categories Section */}
       <section className="w-full bg-white py-12 mt-8">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-8 text-gray-900">Explore the catalog</h2>
+          <h2 className="text-3xl font-bold mb-8 text-gray-900">
+            Explore the catalog
+          </h2>
 
           <div className="relative">
             <button
@@ -297,7 +352,7 @@ export default function Home() {
                     {cat.name}
                   </p>
                 </div>
-               ))}
+              ))}
             </div>
 
             <button
@@ -308,8 +363,16 @@ export default function Home() {
             </button>
           </div>
         </div>
+        <div>
+          <ItemsCategory />
+        </div>
+        <div>
+          <Cart />
+        </div>
+        <div>
+          <Checkout />
+        </div>
       </section>
-
 
       <style jsx global>{`
         .slick-slider .slick-dots {
@@ -344,6 +407,6 @@ export default function Home() {
           scrollbar-width: none;
         }
       `}</style>
-    </div >
+    </div>
   );
 }

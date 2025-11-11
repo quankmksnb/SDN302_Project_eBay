@@ -10,7 +10,6 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <>
-      <NextTopLoader />
       <main>
         <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
       </main>

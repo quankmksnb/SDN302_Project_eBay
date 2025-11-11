@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 import { logoutUser } from "@/services/authService";
 import ChangePasswordModal from "./ChangePasswordModal";
 import NotificationModal from "./NotificationModal";
+import cartService from "@/services/cartService";
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -14,6 +15,18 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [cart, setCart] = useState({});
+
+  const fetchCart = async () => {
+    try {
+      const data = await cartService.getCart();
+      if (data && data.message === true) {
+        setCart(data.cart);
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+    }
+  };
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -25,6 +38,7 @@ export default function Header() {
         console.error("Error parsing user data:", error);
       }
     }
+    fetchCart();
     setIsLoading(false);
   }, []);
 
