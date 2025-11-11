@@ -363,15 +363,6 @@ export default function HomePage() {
             </button>
           </div>
         </div>
-        <div>
-          <ItemsCategory />
-        </div>
-        <div>
-          <Cart />
-        </div>
-        <div>
-          <Checkout />
-        </div>
       </section>
 
       <style jsx global>{`
