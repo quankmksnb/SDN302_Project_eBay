@@ -4,6 +4,7 @@ import FloatingInput from "@/components/ui/Floating/FloatingInput";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser, saveTokens, loginWithGoogle } from "@/services/authService";
+import cartService from "@/services/cartService";
 
 export default function EbayLoginForm() {
   const router = useRouter();
@@ -59,8 +60,14 @@ export default function EbayLoginForm() {
         localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      // ✅ Chuyển về trang chủ sau khi login thành công
-      router.push("/");
+      // ✅ Merge local cart -> server sau login thành công
+      await cartService.mergeGuestCartToServer();
+
+      // 🔁 Kiểm tra redirect param (nếu có từ ?redirect=)
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get("redirect") || "/";
+
+      router.push(redirect);
     } catch (err) {
       console.error("Login error:", err);
       const message =
