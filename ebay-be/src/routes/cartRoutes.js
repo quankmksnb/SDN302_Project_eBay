@@ -5,6 +5,7 @@ import {
   applyCoupon,
   clearCart,
   getCart,
+  getCartBySeller,
   mergeGuestCart,
   removeFromCart,
   updateCartItem,
@@ -15,9 +16,9 @@ const cartRoutes = express.Router();
 cartRoutes.get("/", authenticateToken, getCart);
 cartRoutes.post("/add", authenticateToken, addToCart);
 cartRoutes.patch("/update", authenticateToken, updateCartItem);
-cartRoutes.delete("remove/:productId", authenticateToken, removeFromCart);
+cartRoutes.delete("/remove/:productId", authenticateToken, removeFromCart);
 cartRoutes.delete("/clear", authenticateToken, clearCart);
-
+cartRoutes.get("/by-seller", authenticateToken, getCartBySeller)
 // Apply coupon
 cartRoutes.post("/apply-coupon", authenticateToken, applyCoupon);
 

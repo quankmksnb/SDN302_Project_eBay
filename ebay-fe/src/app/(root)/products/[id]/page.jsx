@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getProductById } from "@/services/productService";
+import {
+  getProductById,
+  getProductsByCategory,
+} from "@/services/productService";
 import { toast } from "react-hot-toast";
 import cartService from "@/services/cartService";
+import AddedToCartPopup from "@/components/ui/AddToCartStatus/AddToCartStatus";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -14,12 +18,53 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [activeTab, setActiveTab] = useState("description");
   const [quantity, setQuantity] = useState(1);
+  const [showPopup, setShowPopup] = useState(false);
+  const [relatedItems, setRelatedItems] = useState([]);
+
+  // const handleAddToCart = async () => {
+  //   if (!product) return;
+  //   try {
+  //     await cartService.addToCart(product, quantity);
+  //     toast.success("Added to cart successfully!");
+  //     window.dispatchEvent(new Event("cart_updated"));
+  //   } catch (err) {
+  //     console.error("Add to cart error:", err);
+  //     toast.error("Failed to add to cart. Please try again.");
+  //   }
+  // };
   const handleAddToCart = async () => {
     if (!product) return;
     try {
+      // Gọi API thêm sản phẩm vào giỏ
       await cartService.addToCart(product, quantity);
       toast.success("Added to cart successfully!");
       window.dispatchEvent(new Event("cart_updated"));
+
+      // === 🔹 Gọi API lấy tất cả sản phẩm cùng categoryId ===
+      if (product.categoryId) {
+        try {
+          // đảm bảo categoryId là string
+          const categoryId =
+            typeof product.categoryId === "object"
+              ? product.categoryId._id
+              : product.categoryId;
+
+          const response = await getProductsByCategory(categoryId);
+
+          // Backend nên trả về { products: [...] }
+          const related = response.products || response;
+
+          // Loại bỏ chính sản phẩm hiện tại (tránh trùng)
+          const filteredRelated = related.filter((p) => p._id !== product._id);
+
+          setRelatedItems(filteredRelated);
+        } catch (err) {
+          console.error("Error fetching related items:", err);
+          setRelatedItems([]);
+        }
+      }
+
+      setShowPopup(true);
     } catch (err) {
       console.error("Add to cart error:", err);
       toast.error("Failed to add to cart. Please try again.");
@@ -83,6 +128,18 @@ export default function ProductDetail() {
         fontFamily: "'Market Sans', 'Helvetica Neue', Arial, sans-serif",
       }}
     >
+      <AddedToCartPopup
+        visible={showPopup}
+        onClose={() => setShowPopup(false)}
+        product={{
+          title: product.title,
+          price: product.price,
+          image: selectedImage || product.image,
+          shipping: 45.15, // hoặc lấy thật từ backend nếu có
+        }}
+        relatedItems={relatedItems}
+      />
+
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="text-sm text-gray-600">
