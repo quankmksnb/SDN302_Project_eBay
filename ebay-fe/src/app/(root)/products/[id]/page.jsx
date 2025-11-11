@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getProductById } from "@/services/productService";
+import cartService from "@/services/cartService";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [activeTab, setActiveTab] = useState("description");
   const [quantity, setQuantity] = useState(1);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadProduct() {
@@ -260,7 +262,34 @@ export default function ProductDetail() {
               <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full text-lg transition">
                 Buy It Now
               </button>
-              <button className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 rounded-full text-lg transition">
+              <button
+                onClick={async () => {
+                  try {
+                    const user = localStorage.getItem("user");
+                    if (user || localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken")) {
+                      // Logged-in: call backend
+                      await cartService.addToCart(product._id || product.id, quantity);
+                      // Notify header to refresh
+                      window.dispatchEvent(new Event("cart_updated"));
+                    } else {
+                      // Guest: add to local storage
+                      cartService.addToLocalCart(product, quantity);
+                    }
+                    // simple feedback
+                    try {
+                      // small non-blocking UI feedback: navigate to cart or show alert
+                      // we'll show a small alert and keep user on page
+                      window.alert("Added to cart");
+                    } catch (e) {
+                      console.log("Added to cart");
+                    }
+                  } catch (err) {
+                    console.error("Add to cart error", err);
+                    window.alert("Failed to add to cart");
+                  }
+                }}
+                className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 rounded-full text-lg transition"
+              >
                 Add to cart
               </button>
             </div>

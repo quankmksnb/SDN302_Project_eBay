@@ -8,6 +8,7 @@ import { logoutUser } from "@/services/authService";
 import ChangePasswordModal from "./ChangePasswordModal";
 import NotificationModal from "./NotificationModal";
 import { useRouter } from "next/navigation";
+import cartService from "@/services/cartService";
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -16,6 +17,7 @@ export default function Header() {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [search, setSearch] = useState("");
+  const [cartCount, setCartCount] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -28,7 +30,49 @@ export default function Header() {
         console.error("Error parsing user data:", error);
       }
     }
+    // init cart count
+    const initCartCount = async () => {
+      try {
+        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+        if (accessToken) {
+          const data = await cartService.getCart();
+          const items = data?.items || data?.cart || [];
+          const count = items.reduce((s, it) => s + (it.quantity || 0), 0);
+          setCartCount(count);
+        } else {
+          const localItems = cartService.getLocalCart();
+          const count = localItems.reduce((s, it) => s + (it.quantity || 0), 0);
+          setCartCount(count);
+        }
+      } catch (err) {
+        console.warn("Init cart count error", err);
+      }
+    };
+    initCartCount();
     setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const handler = async () => {
+      try {
+        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+        if (accessToken) {
+          const data = await cartService.getCart();
+          const items = data?.items || data?.cart || [];
+          const count = items.reduce((s, it) => s + (it.quantity || 0), 0);
+          setCartCount(count);
+        } else {
+          const localItems = cartService.getLocalCart();
+          const count = localItems.reduce((s, it) => s + (it.quantity || 0), 0);
+          setCartCount(count);
+        }
+      } catch (err) {
+        console.warn("cart_updated handler error", err);
+      }
+    };
+
+    window.addEventListener("cart_updated", handler);
+    return () => window.removeEventListener("cart_updated", handler);
   }, []);
   const handleSearch = (e) => {
     e.preventDefault();
@@ -237,9 +281,18 @@ export default function Header() {
               />
             </li>
             <li>
-              <Link className="nav-link" href={"/"}>
+              <button
+                className="nav-link relative"
+                onClick={() => router.push("/cart")}
+                aria-label="View cart"
+              >
                 <Image src={"/icons/cart.svg"} width={20} height={20} alt="" />
-              </Link>
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[11px] font-semibold rounded-full px-2 py-0.5">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
             </li>
           </ul>
         </div>

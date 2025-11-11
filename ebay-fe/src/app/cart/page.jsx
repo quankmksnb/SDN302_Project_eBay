@@ -1,49 +1,19 @@
 "use client";
 import Loading from "@/components/shared/Loading";
 import React, { useEffect, useState } from "react";
+import cartService from "@/services/cartService";
 
 const Cart = () => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cart, setCart] = useState({});
-  const cartItems = [
-    {
-      id: 1,
-      seller: "UMIDIGI US Official Store",
-      feedback: "96.1% positive feedback",
-      image: "https://i.ebayimg.com/images/g/6qEAAOSw~oFkBlY5/s-l1600.jpg",
-      name: "UMIDIGI A11 Pro Max 6.8'' Unlocked Smartphone Android International Version AT&T",
-      sold: "270 SOLD",
-      condition: "New",
-      variant: "Mist Blue, 4GB+128GB",
-      priceUSD: 115.19,
-      priceVND: 3030649,
-      shippingUSD: 81.17,
-      shippingVND: 2135583,
-      hasOffer: true,
-    },
-    {
-      id: 2,
-      seller: "C***e",
-      feedback: "98.9% positive feedback",
-      image: "https://i.ebayimg.com/images/g/9WkAAOSwqXpmuKU2/s-l1600.jpg",
-      name: "IRIS Connect 32GB Unlocked",
-      sold: "314 SOLD",
-      condition: "New",
-      variant: "Black 32GB",
-      priceUSD: 27.99,
-      priceVND: 736417,
-      shippingUSD: 46.73,
-      shippingVND: 1229466,
-      hasOffer: false,
-    },
-  ];
+  const [cartItems, setCartItems] = useState([]);
 
   const summary = {
-    items: 5871340,
-    shipping: 6081294,
-    discount: 515150,
-    total: 11437484,
+    items: 0,
+    shipping: 0,
+    discount: 0,
+    total: 0,
   };
 
   useEffect(() => {
@@ -56,7 +26,48 @@ const Cart = () => {
         console.error("Error parsing user data:", error);
       }
     }
-    setIsLoading(false);
+    const loadCart = async () => {
+      try {
+        const accessToken =
+          localStorage.getItem("accessToken") ||
+          sessionStorage.getItem("accessToken");
+        if (accessToken) {
+          const data = await cartService.getCart();
+          const items = data?.items || data?.cart || [];
+          setCartItems(items);
+        } else {
+          const items = cartService.getLocalCart();
+          setCartItems(items);
+        }
+      } catch (err) {
+        console.warn("Load cart error", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCart();
+
+    const handler = async () => {
+      try {
+        const accessToken =
+          localStorage.getItem("accessToken") ||
+          sessionStorage.getItem("accessToken");
+        if (accessToken) {
+          const data = await cartService.getCart();
+          const items = data?.items || data?.cart || [];
+          setCartItems(items);
+        } else {
+          const items = cartService.getLocalCart();
+          setCartItems(items);
+        }
+      } catch (err) {
+        console.warn("cart_updated handler error", err);
+      }
+    };
+
+    window.addEventListener("cart_updated", handler);
+    return () => window.removeEventListener("cart_updated", handler);
   }, []);
   if (isLoading) return <Loading />;
   return (
@@ -70,9 +81,9 @@ const Cart = () => {
       <div className="flex justify-between w-[90%] max-w-[1200px] mt-8 gap-10">
         {/* LEFT COLUMN */}
         <div className="flex flex-col w-[68%] space-y-6">
-          {cartItems.map((item) => (
+          {cartItems.map((item, idx) => (
             <div
-              key={item.id}
+              key={item.productId || item.id || idx}
               className="border border-gray-200 rounded-2xl p-6 transition-all duration-200 hover:shadow-md"
             >
               {/* Seller Info */}
@@ -92,7 +103,12 @@ const Cart = () => {
               {/* Product Info */}
               <div className="flex justify-between gap-4">
                 <img
-                  src={item.image}
+                  src={
+                    item.image ||
+                    item.product?.image ||
+                    item.productId?.image ||
+                    item.product?.images?.[0]
+                  }
                   alt={item.name}
                   className="w-[110px] h-[110px] object-cover rounded-lg border"
                 />
@@ -106,7 +122,7 @@ const Cart = () => {
                     href="#"
                     className="text-[#0654ba] font-semibold mt-1 hover:underline leading-snug"
                   >
-                    {item.name}
+                    {item.title || item.name || item.product?.title}
                   </a>
                   <p className="text-[13px] text-gray-700 mt-1">
                     {item.condition}
@@ -134,20 +150,59 @@ const Cart = () => {
                 <div className="text-right min-w-[180px]">
                   <div className="flex items-center justify-end gap-2">
                     <p className="text-sm text-gray-600">Qty</p>
-                    <select className="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                    <select
+                      className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const q = parseInt(e.target.value) || 1;
+                        // update local or backend
+                        const accessToken =
+                          localStorage.getItem("accessToken") ||
+                          sessionStorage.getItem("accessToken");
+                        if (accessToken) {
+                          cartService
+                            .updateCartItem(
+                              item.productId || item.id || item.product?._id,
+                              q
+                            )
+                            .then(() => {
+                              window.dispatchEvent(new Event("cart_updated"));
+                            });
+                        } else {
+                          const items = cartService.getLocalCart();
+                          const idx = items.findIndex(
+                            (it) =>
+                              it.productId ===
+                              (item.productId || item.id || item.product?._id)
+                          );
+                          if (idx > -1) {
+                            items[idx].quantity = q;
+                            cartService.saveLocalCart(items);
+                          }
+                        }
+                      }}
+                    >
                       <option>1</option>
                       <option>2</option>
+                      <option>3</option>
+                      <option>4</option>
                     </select>
                   </div>
                   <p className="font-semibold text-[15px] text-gray-900 mt-1">
-                    US ${item.priceUSD.toFixed(2)}
+                    US ${Number(item.priceUSD ?? item.price ?? 0).toFixed(2)}
                   </p>
+
                   <p className="text-[12px] text-gray-600">
-                    ({item.priceVND.toLocaleString()} VND)
+                    (
+                    {Number(
+                      item.priceVND ?? (item.price ?? 0) * 23000
+                    ).toLocaleString()}{" "}
+                    VND)
                   </p>
+
                   <p className="text-[12px] text-gray-500">
-                    + US ${item.shippingUSD.toFixed(2)} (
-                    {item.shippingVND.toLocaleString()} VND)
+                    + US ${Number(item.shippingUSD ?? 0).toFixed(2)} (
+                    {Number(item.shippingVND ?? 0).toLocaleString()} VND)
                   </p>
                 </div>
               </div>
