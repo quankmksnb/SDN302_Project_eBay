@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import "./globals.scss";
+import NextTopLoader from "nextjs-toploader";
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
     "/register",
     "/register/verify-email",
     "/login/google",
+    "/checkout",
   ];
 
   const shouldHideHeaderFooter = hideHeaderFooterRoutes.includes(pathname);
@@ -24,7 +26,7 @@ export default function RootLayout({ children }) {
     <html lang="vi">
       <body>
         {!shouldHideHeaderFooter && <Header />}
-
+        <NextTopLoader />
         <main>
           <Suspense fallback={<div>Đang tải...</div>}>{children}</Suspense>
         </main>

@@ -6,7 +6,18 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        market: [
+          "Market Sans",
+          "Helvetica Neue",
+          "Helvetica",
+          "Arial",
+          "Roboto",
+          "sans-serif",
+        ],
+      },
+    },
   },
   plugins: [],
 };

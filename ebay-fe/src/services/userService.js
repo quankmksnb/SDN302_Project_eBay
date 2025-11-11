@@ -13,4 +13,14 @@ export const forgotPassword = (email) =>
 // ✅ 4. Đặt lại mật khẩu (sau khi xác thực OTP)
 export const resetPassword = (data) => api.post("/users/reset-password", data);
 
+export const getUserCoupons = async () => {
+  try {
+    const response = await api.get("/coupons/my");
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 export const getUserInfo = () => api.get("/users/me");

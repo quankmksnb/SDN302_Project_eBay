@@ -7,6 +7,17 @@ import React, { useState, useEffect } from "react";
 import { logoutUser } from "@/services/authService";
 import ChangePasswordModal from "./ChangePasswordModal";
 import NotificationModal from "./NotificationModal";
+import { useRouter } from "next/navigation";
+import { getNotifications, maskAsRead } from "@/services/notificationService";
+import { timeAgo } from "@/lib/utils";
+import cartService from "@/services/cartService";
+
+// Helper function để lấy user từ Local hoặc Session Storage
+const getUserFromStorage = () => {
+  const userStr =
+    localStorage.getItem("user") || sessionStorage.getItem("user");
+  return userStr ? JSON.parse(userStr) : null;
+};
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -14,23 +25,61 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotification] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [search, setSearch] = useState("");
+  const [cartCount, setCartCount] = useState(0);
+  const router = useRouter();
 
-  useEffect(() => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const userData = JSON.parse(userStr);
-        setUser(userData);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
+  // fetch data
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      console.log(data);
+      setUnreadCount(data.unReadCount);
+      setNotification(
+        data.notifications.map((noti) => ({
+          ...noti,
+          time: timeAgo(noti.time),
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
     }
-    setIsLoading(false);
-  }, []);
+  };
+  const fetchCartCount = async () => {
+    try {
+      const data = await cartService.getCart();
+      const items = data.cart?.items || [];
+      const total = items.reduce((sum, item) => sum + item.quantity, 0);
+      setCartCount(total);
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+    }
+  };
 
+  // handlers
+  const handleClickNoti = async (id, link) => {
+    try {
+      const data = await maskAsRead(id);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      fetchNotifications();
+      router.push(link);
+    }
+  };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (search.trim() !== "") {
+      router.push(`/products?search=${encodeURIComponent(search.trim())}`);
+    } else {
+      router.push("/products");
+    }
+  };
   const handleLogout = async () => {
     try {
-      // Lấy refreshToken từ localStorage hoặc user object
+      // Vẫn giữ logic kiểm tra token cũ
       const stored =
         localStorage.getItem("user") || sessionStorage.getItem("user");
       const data = stored ? JSON.parse(stored) : null;
@@ -45,10 +94,11 @@ export default function Header() {
     } catch (error) {
       console.error("❌ Logout failed:", error);
     } finally {
-      // Dọn dẹp local storage dù logout thành công hay không
+      // Dọn dẹp cả localStorage và sessionStorage
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("user"); // Đã thêm
       sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("refreshToken");
 
@@ -57,9 +107,30 @@ export default function Header() {
     }
   };
 
+  useEffect(() => {
+    const userData = getUserFromStorage(); // Dùng helper function
+    if (userData) {
+      fetchNotifications();
+      setUser(userData);
+    }
+
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const userData = getUserFromStorage(); // Dùng helper function
+    if (userData) setUser(userData);
+    fetchCartCount();
+    const handleUpdate = () => fetchCartCount();
+    window.addEventListener("cart_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("cart_updated", handleUpdate);
+    };
+  }, []);
+
   return (
     <header className="">
-      <nav className="border-b border-[#e5e5e5] flex justify-center px-[24px]">
+      <nav className="border-b border-[#e5e5e5] flex justify-center px-[24px] py-[10px]">
         <div className="container flex justify-between items-center h-[32px]">
           <ul className="flex gap-[8px]">
             <li className="nav-link relative">
@@ -212,6 +283,12 @@ export default function Header() {
               onMouseEnter={() => setShowNotifications(true)}
               onMouseLeave={() => setShowNotifications(false)}
             >
+              {unreadCount > 0 && (
+                <span className="text-red-500 text-[12px] font-semibold absolute top-[-3px] right-[7px]">
+                  {unreadCount}
+                </span>
+              )}
+
               <Link href="/account/settings#notification">
                 <Image
                   src="/icons/bell.svg"
@@ -222,14 +299,31 @@ export default function Header() {
               </Link>
 
               <NotificationModal
+                router
                 isOpen={showNotifications}
                 onClose={() => setShowNotifications(false)}
+                notifications={notifications}
+                handleClick={handleClickNoti}
               />
             </li>
-            <li>
-              <Link className="nav-link" href={"/"}>
-                <Image src={"/icons/cart.svg"} width={20} height={20} alt="" />
-              </Link>
+            <li className="nav-link relative">
+              <button
+                onClick={() => router.push("/cart")}
+                aria-label="View cart"
+                className="relative"
+              >
+                <Image
+                  src={"/icons/cart.svg"}
+                  width={20}
+                  height={20}
+                  alt="Cart"
+                />
+                {cartCount > 0 && (
+                  <span className="absolute top-[-5px] right-[-8px] text-white bg-red-500 w-[16px] h-[16px] flex items-center justify-center font-semibold rounded-full ">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
             </li>
           </ul>
         </div>
@@ -257,7 +351,10 @@ export default function Header() {
               />
             </div>
           </div>
-          <form className="flex w-full items-center gap-[16px]">
+          <form
+            onSubmit={handleSearch}
+            className="flex w-full items-center gap-[16px]"
+          >
             <div className="w-full flex items-center border-[2px] border-[#191919] rounded-full h-[44px] overflow-hidden">
               <div className="pl-4">
                 <Image
@@ -271,6 +368,8 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Search for anything"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="flex-1 px-3 outline-none text-gray-700 placeholder-gray-400"
               />
             </div>
