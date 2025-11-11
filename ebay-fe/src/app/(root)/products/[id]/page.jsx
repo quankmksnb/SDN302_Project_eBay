@@ -43,27 +43,45 @@ export default function ProductDetail() {
 
   if (loading)
     return (
-      <div className="text-center mt-20 text-gray-600" style={{ fontFamily: "'Market Sans', 'Helvetica Neue', Arial, sans-serif" }}>
+      <div
+        className="text-center mt-20 text-gray-600"
+        style={{
+          fontFamily: "'Market Sans', 'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
         Loading...
       </div>
     );
 
   if (!product)
     return (
-      <div className="text-center mt-20 text-red-500" style={{ fontFamily: "'Market Sans', 'Helvetica Neue', Arial, sans-serif" }}>
+      <div
+        className="text-center mt-20 text-red-500"
+        style={{
+          fontFamily: "'Market Sans', 'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
         No product found
       </div>
     );
 
   return (
-    <main className="bg-white min-h-screen" style={{ fontFamily: "'Market Sans', 'Helvetica Neue', Arial, sans-serif" }}>
-
+    <main
+      className="bg-white min-h-screen"
+      style={{
+        fontFamily: "'Market Sans', 'Helvetica Neue', Arial, sans-serif",
+      }}
+    >
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="text-sm text-gray-600">
-            <span className="hover:underline cursor-pointer">Shop by category</span>
+            <span className="hover:underline cursor-pointer">
+              Shop by category
+            </span>
             <span className="mx-2">›</span>
-            <span className="hover:underline cursor-pointer">{product.categoryId?.name || "Category"}</span>
+            <span className="hover:underline cursor-pointer">
+              {product.categoryId?.name || "Category"}
+            </span>
             <span className="mx-2">›</span>
             <span className="text-gray-900 font-semibold">{product.title}</span>
           </div>
@@ -80,15 +98,18 @@ export default function ProductDetail() {
                 <span className="text-gray-600"> WHEN YOU BUY MORE</span>
               </div>
 
-             
               <div className="relative bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
                 <img
-                  src={selectedImage || product.image || product.images?.[0] || "/placeholder.png"}
+                  src={
+                    selectedImage ||
+                    product.image ||
+                    product.images?.[0] ||
+                    "/placeholder.png"
+                  }
                   alt={product.title}
                   className="w-full h-[500px] object-contain p-8"
                 />
-                
-              
+
                 <div className="absolute top-4 left-4">
                   <div className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded">
                     {randomViewed} VIEWED IN THE LAST 24 HOURS
@@ -97,26 +118,66 @@ export default function ProductDetail() {
 
                 <div className="absolute top-4 right-4 flex gap-2">
                   <button className="bg-white border border-gray-300 rounded-full p-2 hover:bg-gray-50">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                      />
                     </svg>
                   </button>
                   <button className="bg-white border border-gray-300 rounded-full p-2 hover:bg-gray-50">
-                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    <svg
+                      className="w-6 h-6 text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
                     </svg>
                     <span className="text-sm ml-1">3.3K</span>
                   </button>
                 </div>
 
                 <button className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border border-gray-300 rounded-full p-3 shadow">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                 </button>
                 <button className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border border-gray-300 rounded-full p-3 shadow">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               </div>
@@ -127,7 +188,9 @@ export default function ProductDetail() {
                     <div
                       key={i}
                       className={`flex-shrink-0 w-16 h-16 border-2 rounded cursor-pointer hover:border-blue-500 transition ${
-                        selectedImage === img ? "border-blue-500" : "border-gray-300"
+                        selectedImage === img
+                          ? "border-blue-500"
+                          : "border-gray-300"
                       }`}
                       onClick={() => setSelectedImage(img)}
                     >
@@ -142,8 +205,18 @@ export default function ProductDetail() {
               )}
 
               <button className="mt-4 flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-full hover:bg-gray-50">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                  />
                 </svg>
                 <span className="text-sm font-semibold">Share</span>
               </button>
@@ -167,19 +240,37 @@ export default function ProductDetail() {
                     <span className="font-semibold text-blue-600 hover:underline cursor-pointer">
                       {product.sellerId.username}
                     </span>
-                    <span className="text-gray-600 text-sm">({Math.floor(Math.random() * 100000)})</span>
+                    <span className="text-gray-600 text-sm">
+                      ({Math.floor(Math.random() * 100000)})
+                    </span>
                   </div>
                   <div className="text-sm">
-                    <span className="text-green-600 font-semibold">99.6% positive</span>
+                    <span className="text-green-600 font-semibold">
+                      99.6% positive
+                    </span>
                     <span className="mx-2 text-gray-400">·</span>
-                    <a href="#" className="text-blue-600 hover:underline">Seller's other items</a>
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Seller's other items
+                    </a>
                     <span className="mx-2 text-gray-400">·</span>
-                    <a href="#" className="text-blue-600 hover:underline">Contact seller</a>
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Contact seller
+                    </a>
                   </div>
                 </div>
                 <button className="text-blue-600 hover:text-blue-700">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               </div>
@@ -200,8 +291,18 @@ export default function ProductDetail() {
                 <span className="text-sm text-gray-500 line-through">
                   Was US ${(product.price * 1.05).toLocaleString()}
                 </span>
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <p className="text-sm text-green-700 mt-1">
@@ -210,50 +311,91 @@ export default function ProductDetail() {
             </div>
 
             <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-200">
-              <span className="text-gray-700 font-semibold w-24">Condition:</span>
+              <span className="text-gray-700 font-semibold w-24">
+                Condition:
+              </span>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-semibold">Excellent - Refurbished</span>
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
                 <p className="text-sm text-gray-600 italic">
-                  "Item is refurbished in 'A' stock, has been fully tested, and is in perfect working order guaranteed!"...{" "}
-                  <a href="#" className="text-blue-600 hover:underline font-normal not-italic">Read more</a>
+                  "Item is refurbished in 'A' stock, has been fully tested, and
+                  is in perfect working order guaranteed!"...{" "}
+                  <a
+                    href="#"
+                    className="text-blue-600 hover:underline font-normal not-italic"
+                  >
+                    Read more
+                  </a>
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-gray-700 font-semibold w-24">Sale ends in:</span>
+              <span className="text-gray-700 font-semibold w-24">
+                Sale ends in:
+              </span>
               <span className="text-red-600 font-bold">11h 0m</span>
             </div>
 
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-gray-700 font-semibold w-24">Quantity:</span>
+              <span className="text-gray-700 font-semibold w-24">
+                Quantity:
+              </span>
               <div className="flex items-center gap-4">
                 <input
                   type="number"
                   min="1"
                   value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) =>
+                    setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                  }
                   className="w-20 border border-gray-300 rounded px-3 py-2 text-center"
                 />
                 <span className="text-sm text-gray-600">189 available</span>
-                <span className="text-sm text-red-600 font-semibold">· {randomSold} sold</span>
+                <span className="text-sm text-red-600 font-semibold">
+                  · {randomSold} sold
+                </span>
               </div>
             </div>
 
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-              <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              <svg
+                className="w-8 h-8 text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
               </svg>
               <div className="flex-1">
-                <p className="font-semibold text-gray-900">263,100.00 VND off with code TOPFINDS25</p>
+                <p className="font-semibold text-gray-900">
+                  263,100.00 VND off with code TOPFINDS25
+                </p>
                 <p className="text-sm text-gray-600">Ends 11 Nov</p>
               </div>
-              <a href="#" className="text-blue-600 hover:underline font-semibold text-sm whitespace-nowrap">
+              <a
+                href="#"
+                className="text-blue-600 hover:underline font-semibold text-sm whitespace-nowrap"
+              >
                 See details
               </a>
             </div>
@@ -263,31 +405,7 @@ export default function ProductDetail() {
                 Buy It Now
               </button>
               <button
-                onClick={async () => {
-                  try {
-                    const user = localStorage.getItem("user");
-                    if (user || localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken")) {
-                      // Logged-in: call backend
-                      await cartService.addToCart(product._id || product.id, quantity);
-                      // Notify header to refresh
-                      window.dispatchEvent(new Event("cart_updated"));
-                    } else {
-                      // Guest: add to local storage
-                      cartService.addToLocalCart(product, quantity);
-                    }
-                    // simple feedback
-                    try {
-                      // small non-blocking UI feedback: navigate to cart or show alert
-                      // we'll show a small alert and keep user on page
-                      window.alert("Added to cart");
-                    } catch (e) {
-                      console.log("Added to cart");
-                    }
-                  } catch (err) {
-                    console.error("Add to cart error", err);
-                    window.alert("Failed to add to cart");
-                  }
-                }}
+                onClick={async () => {}}
                 className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 rounded-full text-lg transition"
               >
                 Add to cart
@@ -296,16 +414,34 @@ export default function ProductDetail() {
 
             <div className="space-y-3 text-sm border-t border-gray-200 pt-4">
               <div className="flex justify-between">
-                <span className="text-gray-600">No Interest if paid in full in 6 mo on $99+</span>
-                <a href="#" className="text-blue-600 hover:underline">Details</a>
+                <span className="text-gray-600">
+                  No Interest if paid in full in 6 mo on $99+
+                </span>
+                <a href="#" className="text-blue-600 hover:underline">
+                  Details
+                </a>
               </div>
               <div className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-gray-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                <svg
+                  className="w-5 h-5 text-gray-600 mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
                 </svg>
                 <div className="flex-1">
-                  <p className="font-semibold text-gray-900">eBay Money Back Guarantee</p>
-                  <p className="text-gray-600">Get the item you ordered or get your money back.</p>
+                  <p className="font-semibold text-gray-900">
+                    eBay Money Back Guarantee
+                  </p>
+                  <p className="text-gray-600">
+                    Get the item you ordered or get your money back.
+                  </p>
                 </div>
               </div>
             </div>
@@ -361,12 +497,26 @@ export default function ProductDetail() {
           {activeTab === "shipping" && (
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <svg className="w-6 h-6 text-green-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-6 h-6 text-green-600 mt-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
                 <div>
-                  <p className="font-semibold text-gray-900">Free international shipping</p>
-                  <p className="text-sm text-gray-600">Estimated delivery: 10-15 business days</p>
+                  <p className="font-semibold text-gray-900">
+                    Free international shipping
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Estimated delivery: 10-15 business days
+                  </p>
                 </div>
               </div>
               <div className="text-sm text-gray-600 space-y-2">
@@ -380,13 +530,19 @@ export default function ProductDetail() {
           {activeTab === "reviews" && (
             <div>
               {reviews.length === 0 ? (
-                <p className="text-gray-600">No reviews yet. Be the first to review this product!</p>
+                <p className="text-gray-600">
+                  No reviews yet. Be the first to review this product!
+                </p>
               ) : (
                 <ul className="space-y-6">
                   {reviews.map((r, index) => (
                     <li
                       key={r._id}
-                      className={`pb-6 ${index !== reviews.length - 1 ? "border-b border-gray-200" : ""}`}
+                      className={`pb-6 ${
+                        index !== reviews.length - 1
+                          ? "border-b border-gray-200"
+                          : ""
+                      }`}
                     >
                       <div className="flex items-start gap-4">
                         <img
@@ -396,17 +552,20 @@ export default function ProductDetail() {
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="font-semibold text-gray-900">{r.reviewerId?.username}</p>
+                            <p className="font-semibold text-gray-900">
+                              {r.reviewerId?.username}
+                            </p>
                             <p className="text-yellow-500 text-lg">
-                              {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+                              {"★".repeat(r.rating)}
+                              {"☆".repeat(5 - r.rating)}
                             </p>
                           </div>
                           <p className="text-gray-700 mb-2">{r.comment}</p>
                           <p className="text-xs text-gray-500">
-                            {new Date(r.createdAt).toLocaleDateString("en-US", { 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
+                            {new Date(r.createdAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
                             })}
                           </p>
                         </div>

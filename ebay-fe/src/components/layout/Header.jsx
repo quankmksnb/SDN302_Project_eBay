@@ -8,7 +8,8 @@ import { logoutUser } from "@/services/authService";
 import ChangePasswordModal from "./ChangePasswordModal";
 import NotificationModal from "./NotificationModal";
 import { useRouter } from "next/navigation";
-import cartService from "@/services/cartService";
+import { getNotifications, maskAsRead } from "@/services/notificationService";
+import { timeAgo } from "@/lib/utils";
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -16,13 +17,42 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotification] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      console.log(data);
+      setUnreadCount(data.unReadCount);
+      setNotification(
+        data.notifications.map((noti) => ({
+          ...noti,
+          time: timeAgo(noti.time),
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const handleClickNoti = async (id, link) => {
+    try {
+      const data = await maskAsRead(id);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      fetchNotifications();
+      router.push(link);
+    }
+  };
+
   const [search, setSearch] = useState("");
-  const [cartCount, setCartCount] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
+      fetchNotifications();
       try {
         const userData = JSON.parse(userStr);
         setUser(userData);
@@ -30,53 +60,11 @@ export default function Header() {
         console.error("Error parsing user data:", error);
       }
     }
-    // init cart count
-    const initCartCount = async () => {
-      try {
-        const accessToken =
-          localStorage.getItem("accessToken") ||
-          sessionStorage.getItem("accessToken");
-        if (accessToken) {
-          const data = await cartService.getCart();
-          const items = data?.cart?.items || [];
-          const count = items.reduce((s, it) => s + (it.quantity || 0), 0);
-          setCartCount(count);
-        } else {
-          const localItems = cartService.getLocalCart();
-          const count = localItems.reduce((s, it) => s + (it.quantity || 0), 0);
-          setCartCount(count);
-        }
-      } catch (err) {
-        console.warn("Init cart count error", err);
-      }
-    };
-    initCartCount();
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    const handler = async () => {
-      try {
-        const accessToken =
-          localStorage.getItem("accessToken") ||
-          sessionStorage.getItem("accessToken");
-        if (accessToken) {
-          const data = await cartService.getCart();
-          const items = data?.items || data?.cart || [];
-          const count = items.reduce((s, it) => s + (it.quantity || 0), 0);
-          setCartCount(count);
-        } else {
-          const localItems = cartService.getLocalCart();
-          const count = localItems.reduce((s, it) => s + (it.quantity || 0), 0);
-          setCartCount(count);
-        }
-      } catch (err) {
-        console.warn("cart_updated handler error", err);
-      }
-    };
-
-    window.addEventListener("cart_updated", handler);
-    return () => window.removeEventListener("cart_updated", handler);
+    
   }, []);
   const handleSearch = (e) => {
     e.preventDefault();
@@ -88,7 +76,6 @@ export default function Header() {
   };
   const handleLogout = async () => {
     try {
-      // Lấy refreshToken từ localStorage hoặc user object
       const stored =
         localStorage.getItem("user") || sessionStorage.getItem("user");
       const data = stored ? JSON.parse(stored) : null;
@@ -103,7 +90,6 @@ export default function Header() {
     } catch (error) {
       console.error("❌ Logout failed:", error);
     } finally {
-      // Dọn dẹp local storage dù logout thành công hay không
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
@@ -117,7 +103,7 @@ export default function Header() {
 
   return (
     <header className="">
-      <nav className="border-b border-[#e5e5e5] flex justify-center px-[24px]">
+      <nav className="border-b border-[#e5e5e5] flex justify-center px-[24px] py-[10px]">
         <div className="container flex justify-between items-center h-[32px]">
           <ul className="flex gap-[8px]">
             <li className="nav-link relative">
@@ -270,6 +256,12 @@ export default function Header() {
               onMouseEnter={() => setShowNotifications(true)}
               onMouseLeave={() => setShowNotifications(false)}
             >
+              {unreadCount > 0 && (
+                <span className="text-red-500 text-[12px] font-semibold absolute top-[-3px] right-[7px]">
+                  {unreadCount}
+                </span>
+              )}
+
               <Link href="/account/settings#notification">
                 <Image
                   src="/icons/bell.svg"
@@ -280,8 +272,11 @@ export default function Header() {
               </Link>
 
               <NotificationModal
+                router
                 isOpen={showNotifications}
                 onClose={() => setShowNotifications(false)}
+                notifications={notifications}
+                handleClick={handleClickNoti}
               />
             </li>
             <li>
@@ -291,11 +286,7 @@ export default function Header() {
                 aria-label="View cart"
               >
                 <Image src={"/icons/cart.svg"} width={20} height={20} alt="" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[11px] font-semibold rounded-full px-2 py-0.5">
-                    {cartCount}
-                  </span>
-                )}
+               
               </button>
             </li>
           </ul>

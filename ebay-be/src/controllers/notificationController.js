@@ -17,10 +17,19 @@ export const getUserNotifications = async (req, res) => {
 
     const unReadNotifs = notifications.filter((noti) => !noti.isRead);
 
+    const formatted = notifications.map((notif) => ({
+      id: notif._id,
+      title: notif.notificationId.title,
+      message: notif.notificationId.message,
+      link: notif.notificationId.link,
+      data: notif.notificationId.data,
+      time: notif.createdAt,
+      unread: !notif.isRead,
+    }));
     res.status(200).json({
       success: true,
       unReadCount: unReadNotifs.length,
-      notifications,
+      notifications: formatted,
     });
   } catch (error) {
     console.error("Error fetching user notifications: ", error);
