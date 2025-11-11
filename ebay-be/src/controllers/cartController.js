@@ -30,6 +30,7 @@ export const getCart = async (req, res) => {
       title: item.productId.title,
     }));
     cart.items = formatted;
+    console.log(cart);
     return res.status(200).json({ success: true, cart });
   } catch (error) {
     console.error("Error getting cart:", error);
