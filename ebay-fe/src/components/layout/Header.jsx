@@ -10,6 +10,14 @@ import NotificationModal from "./NotificationModal";
 import { useRouter } from "next/navigation";
 import { getNotifications, maskAsRead } from "@/services/notificationService";
 import { timeAgo } from "@/lib/utils";
+import cartService from "@/services/cartService";
+
+// Helper function để lấy user từ Local hoặc Session Storage
+const getUserFromStorage = () => {
+  const userStr =
+    localStorage.getItem("user") || sessionStorage.getItem("user");
+  return userStr ? JSON.parse(userStr) : null;
+};
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -19,6 +27,11 @@ export default function Header() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotification] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [search, setSearch] = useState("");
+  const [cartCount, setCartCount] = useState(0);
+  const router = useRouter();
+
+  // fetch data
   const fetchNotifications = async () => {
     try {
       const data = await getNotifications();
@@ -34,7 +47,18 @@ export default function Header() {
       console.error("Error fetching notifications:", error);
     }
   };
+  const fetchCartCount = async () => {
+    try {
+      const data = await cartService.getCart();
+      const items = data.cart?.items || [];
+      const total = items.reduce((sum, item) => sum + item.quantity, 0);
+      setCartCount(total);
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+    }
+  };
 
+  // handlers
   const handleClickNoti = async (id, link) => {
     try {
       const data = await maskAsRead(id);
@@ -45,27 +69,6 @@ export default function Header() {
       router.push(link);
     }
   };
-
-  const [search, setSearch] = useState("");
-  const router = useRouter();
-
-  useEffect(() => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      fetchNotifications();
-      try {
-        const userData = JSON.parse(userStr);
-        setUser(userData);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
-    }
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    
-  }, []);
   const handleSearch = (e) => {
     e.preventDefault();
     if (search.trim() !== "") {
@@ -76,6 +79,7 @@ export default function Header() {
   };
   const handleLogout = async () => {
     try {
+      // Vẫn giữ logic kiểm tra token cũ
       const stored =
         localStorage.getItem("user") || sessionStorage.getItem("user");
       const data = stored ? JSON.parse(stored) : null;
@@ -90,9 +94,11 @@ export default function Header() {
     } catch (error) {
       console.error("❌ Logout failed:", error);
     } finally {
+      // Dọn dẹp cả localStorage và sessionStorage
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("user"); // Đã thêm
       sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("refreshToken");
 
@@ -100,6 +106,27 @@ export default function Header() {
       window.location.href = "/";
     }
   };
+
+  useEffect(() => {
+    const userData = getUserFromStorage(); // Dùng helper function
+    if (userData) {
+      fetchNotifications();
+      setUser(userData);
+    }
+
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const userData = getUserFromStorage(); // Dùng helper function
+    if (userData) setUser(userData);
+    fetchCartCount();
+    const handleUpdate = () => fetchCartCount();
+    window.addEventListener("cart_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("cart_updated", handleUpdate);
+    };
+  }, []);
 
   return (
     <header className="">
@@ -279,14 +306,23 @@ export default function Header() {
                 handleClick={handleClickNoti}
               />
             </li>
-            <li>
+            <li className="nav-link relative">
               <button
-                className="nav-link relative"
                 onClick={() => router.push("/cart")}
                 aria-label="View cart"
+                className="relative"
               >
-                <Image src={"/icons/cart.svg"} width={20} height={20} alt="" />
-               
+                <Image
+                  src={"/icons/cart.svg"}
+                  width={20}
+                  height={20}
+                  alt="Cart"
+                />
+                {cartCount > 0 && (
+                  <span className="absolute top-[-5px] right-[-8px] text-white bg-red-500 w-[16px] h-[16px] flex items-center justify-center font-semibold rounded-full ">
+                    {cartCount}
+                  </span>
+                )}
               </button>
             </li>
           </ul>

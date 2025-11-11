@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { getProductById } from "@/services/productService";
+import { toast } from "react-hot-toast";
 import cartService from "@/services/cartService";
 
 export default function ProductDetail() {
@@ -13,7 +14,17 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [activeTab, setActiveTab] = useState("description");
   const [quantity, setQuantity] = useState(1);
-  const router = useRouter();
+  const handleAddToCart = async () => {
+    if (!product) return;
+    try {
+      await cartService.addToCart(product, quantity);
+      toast.success("Added to cart successfully!");
+      window.dispatchEvent(new Event("cart_updated"));
+    } catch (err) {
+      console.error("Add to cart error:", err);
+      toast.error("Failed to add to cart. Please try again.");
+    }
+  };
 
   useEffect(() => {
     async function loadProduct() {
@@ -405,7 +416,7 @@ export default function ProductDetail() {
                 Buy It Now
               </button>
               <button
-                onClick={async () => {}}
+                onClick={handleAddToCart}
                 className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 rounded-full text-lg transition"
               >
                 Add to cart
