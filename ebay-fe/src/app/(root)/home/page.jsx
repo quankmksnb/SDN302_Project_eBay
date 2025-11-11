@@ -9,9 +9,6 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { getCategories } from "@/services/categoryService";
-import ItemsCategory from "@/components/ui/CategoriesPicker/ListItemCategory";
-import Cart from "@/components/ui/ShoppingCart/Cart";
-import Checkout from "@/components/ui/CheckOut/Checkout";
 
 export default function HomePage() {
   const carouselRef = useRef(null);

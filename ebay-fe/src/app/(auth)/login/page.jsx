@@ -4,7 +4,6 @@ import FloatingInput from "@/components/ui/Floating/FloatingInput";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser, saveTokens, loginWithGoogle } from "@/services/authService";
-import cartService from "@/services/cartService";
 
 export default function EbayLoginForm() {
   const router = useRouter();
@@ -59,9 +58,6 @@ export default function EbayLoginForm() {
         saveTokens(data.accessToken, data.refreshToken);
         localStorage.setItem("user", JSON.stringify(data.user));
       }
-
-      // ✅ Merge local cart -> server sau login thành công
-      await cartService.mergeGuestCartToServer();
 
       // 🔁 Kiểm tra redirect param (nếu có từ ?redirect=)
       const params = new URLSearchParams(window.location.search);
