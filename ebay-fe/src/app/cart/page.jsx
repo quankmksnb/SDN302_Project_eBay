@@ -1,7 +1,11 @@
-"use client"
-import React from "react";
+"use client";
+import Loading from "@/components/shared/Loading";
+import React, { useEffect, useState } from "react";
 
 const Cart = () => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [cart, setCart] = useState({});
   const cartItems = [
     {
       id: 1,
@@ -42,17 +46,24 @@ const Cart = () => {
     total: 11437484,
   };
 
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setUser(userData);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+  if (isLoading) return <Loading />;
   return (
     <div className="min-h-screen bg-white font-[Market Sans,Helvetica Neue,Helvetica,Arial,Roboto,sans-serif] flex flex-col items-center">
       {/* HEADER */}
       <div className="flex justify-between items-center w-[90%] max-w-[1200px] py-6 border-b border-gray-300">
         <h1 className="text-[28px] font-bold text-gray-900">Shopping cart</h1>
-        <a
-          href="#"
-          className="text-[#0654ba] text-sm font-medium hover:underline"
-        >
-          Send Us Your Comments
-        </a>
       </div>
 
       {/* MAIN CONTENT */}

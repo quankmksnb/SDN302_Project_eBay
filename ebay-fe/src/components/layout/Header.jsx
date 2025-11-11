@@ -28,7 +28,6 @@ export default function Header() {
         console.error("Error parsing user data:", error);
       }
     }
-    fetchCart();
     setIsLoading(false);
   }, []);
   const handleSearch = (e) => {
@@ -268,7 +267,10 @@ export default function Header() {
               />
             </div>
           </div>
-          <form onSubmit={handleSearch}  className="flex w-full items-center gap-[16px]">
+          <form
+            onSubmit={handleSearch}
+            className="flex w-full items-center gap-[16px]"
+          >
             <div className="w-full flex items-center border-[2px] border-[#191919] rounded-full h-[44px] overflow-hidden">
               <div className="pl-4">
                 <Image
