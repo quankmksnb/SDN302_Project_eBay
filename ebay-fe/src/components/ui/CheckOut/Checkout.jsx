@@ -31,11 +31,25 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
   const [showModal, setShowModal] = useState(false);
   const addresses = [
     {
-      name: "duy anh",
-      address: "đống đa, đại học công đoàn",
+      name: "Duy Anh",
+      address: "Số 32, Đống Đa, Đại học Công đoàn",
       city: "Hà Nội, Việt Nam 000084",
       country: "Vietnam",
       phone: "0984432509",
+    },
+    {
+      name: "Nguyễn Minh",
+      address: "25 Nguyễn Trãi, Thanh Xuân",
+      city: "Hà Nội, Việt Nam 000085",
+      country: "Vietnam",
+      phone: "0912345678",
+    },
+    {
+      name: "Trần Hải",
+      address: "280 Lý Thường Kiệt, Quận 10",
+      city: "TP. Hồ Chí Minh, Việt Nam 700000",
+      country: "Vietnam",
+      phone: "0905123456",
     },
   ];
 
@@ -114,7 +128,10 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
     <div className="bg-white min-h-screen text-[#111820] font-[Market Sans,Helvetica Neue,Helvetica,Arial,Roboto,sans-serif] flex flex-col items-center">
       {/* ==== HEADER và BANNER (Giữ nguyên) ==== */}
       <div className="flex justify-between items-center w-[90%] max-w-[1200px] py-6 border-b border-gray-200">
-        <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => router.push("/home")}
+        >
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/1/1b/EBay_logo.svg"
             alt="eBay"
@@ -152,93 +169,45 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
           <section>
             <h2 className="text-[20px] font-semibold mb-5">Pay with</h2>
             <div className="space-y-4">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="payment"
-                  className="w-5 h-5 accent-[#3665f3]"
-                  defaultChecked
-                />
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
-                  alt="PayPal"
-                  className="h-5"
-                />
-                <span className="text-[15px] font-medium">PayPal</span>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="payment"
-                  className="w-5 h-5 accent-[#3665f3]"
-                />
-                <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-medium">Add new card</span>
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
-                    className="h-5"
-                    alt="Visa"
+              {[
+                {
+                  label: "PayPal",
+                  icon: "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
+                },
+                {
+                  label: "Add new card",
+                  icon: "https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg",
+                },
+                {
+                  label: "Google Pay",
+                  icon: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Google_Pay_Logo.svg",
+                },
+                {
+                  label: "PayPal Credit",
+                  icon: "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
+                },
+              ].map((method, i) => (
+                <label
+                  key={i}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    className="w-5 h-5 accent-[#3665f3]"
+                    defaultChecked={i === 0}
                   />
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
-                    className="h-5"
-                    alt="Mastercard"
-                  />
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/d/d1/American_Express_logo_%282018%29.svg"
-                    className="h-5"
-                    alt="Amex"
-                  />
-                </div>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="payment"
-                  className="w-5 h-5 accent-[#3665f3]"
-                />
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/5/5b/Google_Pay_Logo.svg"
-                  alt="Google Pay"
-                  className="h-6"
-                />
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="payment"
-                  className="w-5 h-5 accent-[#3665f3]"
-                />
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
-                  alt="PayPal Credit"
-                  className="h-5"
-                />
-                <span className="text-[15px] font-medium">PayPal Credit</span>
-              </label>
+                  <img src={method.icon} alt={method.label} className="h-5" />
+                  <span className="text-[15px] font-medium">
+                    {method.label}
+                  </span>
+                </label>
+              ))}
             </div>
           </section>
 
-          {/* SHIP TO (Giữ nguyên) */}
-          <section className="border-t border-gray-200 pt-6">
-            <h2 className="text-[20px] font-semibold mb-4">Ship to</h2>
-            <div className="border border-gray-300 rounded-lg p-5 leading-relaxed">
-              <p className="font-medium">{addresses[selectedAddress].name}</p>
-              <p>{addresses[selectedAddress].address}</p>
-              <p>{addresses[selectedAddress].city}</p>
-              <p>{addresses[selectedAddress].country}</p>
-              <p>{addresses[selectedAddress].phone}</p>
-              <button
-                className="text-[#3665f3] hover:underline mt-2 text-sm font-medium"
-                onClick={() => setShowModal(true)}
-              >
-                Change
-              </button>
-            </div>
-          </section>
+          {/* ==== SHIP TO ==== */}
+          <ShipTo />
 
           {/* REVIEW ORDER (Giữ nguyên) */}
           <section className="border-t border-gray-200 pt-6">
@@ -357,7 +326,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
               Apply coupons or add eBay gift cards to your account. Once added,
               gift cards can’t be removed.
             </p>
-
             <div className="flex gap-3 mb-4">
               <input
                 type="text"
@@ -445,7 +413,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                 VND
               </p>
             </div>
-
             <p className="text-[12px] text-gray-500 mt-4 leading-5">
               With this purchase you agree to the{" "}
               <a href="#" className="text-[#3665f3] hover:underline">
@@ -453,15 +420,12 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
               </a>
               .
             </p>
-
             <button className="w-full mt-6 py-3 bg-gray-300 text-gray-600 font-semibold rounded-full cursor-not-allowed">
               Confirm and pay
             </button>
-
             <p className="text-center text-xs text-gray-500 mt-3">
               Select a payment method
             </p>
-
             <p className="text-center text-xs text-gray-400 mt-4">
               Purchase protected by{" "}
               <a href="#" className="text-[#3665f3] hover:underline">
@@ -471,6 +435,60 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
           </div>
         </div>
       </div>
+
+      {/* ==== MODAL ADDRESS SELECT ==== */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-[480px] rounded-2xl shadow-xl p-6">
+            <h3 className="text-xl font-semibold mb-4">
+              Select a shipping address
+            </h3>
+            <div className="space-y-3 max-h-[300px] overflow-y-auto">
+              {addresses.map((addr, idx) => (
+                <label
+                  key={idx}
+                  className={`block border rounded-lg p-4 cursor-pointer transition ${
+                    selectedAddress === idx
+                      ? "border-[#3665f3] bg-blue-50"
+                      : "border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name="address"
+                      className="mt-1 w-5 h-5 accent-[#3665f3]"
+                      checked={selectedAddress === idx}
+                      onChange={() => setSelectedAddress(idx)}
+                    />
+                    <div className="text-sm">
+                      <p className="font-medium">{addr.name}</p>
+                      <p>{addr.address}</p>
+                      <p>{addr.city}</p>
+                      <p>{addr.country}</p>
+                      <p>{addr.phone}</p>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-5 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-5 py-2 text-sm font-medium rounded-full bg-[#3665f3] text-white hover:bg-[#2953c6]"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
