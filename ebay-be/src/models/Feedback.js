@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 import User from "./User.js";
+
 const feedbackSchema = mongoose.Schema({
   sellerId: {
-    type: Schema.Types.ObjectId,
+    type:  mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
     unique: true,

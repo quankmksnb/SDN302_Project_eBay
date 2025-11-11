@@ -1,82 +1,131 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createAddress, updateAddress } from "@/services/addressService"; // <--- IMPORT MỚI
 
-const ShipTo = () => {
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      name: "duy anh",
-      address: "đống đa, đại học công đoàn",
-      city: "Hà Nội, Việt Nam 000084",
-      country: "Vietnam",
-      phone: "0984432509",
-      isPrimary: true,
-    },
-    {
-      id: 2,
-      name: "duy anh dinh",
-      address: "Nam Từ Liêm, Xuân Phương",
-      city: "Hà Nội 1918906",
-      country: "Vietnam",
-      phone: "0984432509",
-      isPrimary: false,
-    },
-  ]);
+// Nhận addresses, selectedAddressId, setSelectedAddressId, và onAddressChange qua props
+const ShipTo = ({
+  addresses,
+  selectedAddressId,
+  setSelectedAddressId,
+  onAddressChange,
+}) => {
+  // Xóa state addresses mock
+  // const [addresses, setAddresses] = useState([...])
 
-  const [selectedId, setSelectedId] = useState(1);
+  // Sử dụng props thay cho state cục bộ
+  // const [selectedId, setSelectedId] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    address: "",
+    fullname: "", // Đổi tên trường từ 'name' sang 'fullname' theo Address Model
+    phone: "", // Đổi tên trường từ 'phone' sang 'phone'
+    street: "", // Đổi tên trường từ 'address' sang 'street' theo Address Model
     city: "",
+    state: "", // Thêm state
     country: "Vietnam",
-    phone: "",
+    isDefault: false, // Thêm isDefault
   });
 
+  // Load dữ liệu địa chỉ vào form khi edit
+  useEffect(() => {
+    if (isAdding && formData._id) {
+      // Khi edit, cần đảm bảo các trường trong form match với object từ addresses
+      const addrToEdit = addresses.find((a) => a._id === formData._id);
+      if (addrToEdit) {
+        setFormData({
+          _id: addrToEdit._id,
+          fullname: addrToEdit.fullname,
+          phone: addrToEdit.phone,
+          street: addrToEdit.street,
+          city: addrToEdit.city,
+          state: addrToEdit.state || "", // Thêm state
+          country: addrToEdit.country,
+          isDefault: addrToEdit.isDefault || false,
+        });
+      }
+    }
+  }, [isAdding, formData._id, addresses]);
+
+  // Hàm chọn địa chỉ
   const handleSelect = (id) => {
-    setSelectedId(id);
+    setSelectedAddressId(id);
   };
 
+  // Hàm chuẩn bị form để Edit
   const handleEdit = (id) => {
-    const addr = addresses.find((a) => a.id === id);
-    setFormData(addr);
-    setIsAdding(true);
-  };
-
-  const handleDelete = (id) => {
-    if (confirm("Are you sure you want to delete this address?")) {
-      setAddresses(addresses.filter((a) => a.id !== id));
-      if (selectedId === id && addresses.length > 1)
-        setSelectedId(addresses[0].id);
+    const addr = addresses.find((a) => a._id === id);
+    if (addr) {
+      setFormData({
+        _id: addr._id, // Giữ lại ID để biết là đang update
+        fullname: addr.fullname,
+        phone: addr.phone,
+        street: addr.street,
+        city: addr.city,
+        state: addr.state || "",
+        country: addr.country,
+        isDefault: addr.isDefault || false,
+      });
+      setIsAdding(true);
     }
   };
 
+  // Hàm xóa địa chỉ
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this address?")) {
+      try {
+        await deleteAddress(id);
+        alert("Address deleted successfully!");
+        onAddressChange(); // Gọi hàm re-fetch từ parent (Checkout.jsx)
+        if (selectedAddressId === id) {
+          // Nếu xóa địa chỉ đang được chọn, chọn lại địa chỉ mặc định/đầu tiên sau khi re-fetch
+          setSelectedAddressId(null);
+        }
+      } catch (error) {
+        console.error("Error deleting address:", error);
+        alert("Failed to delete address.");
+      }
+    }
+  };
+
+  // Hàm chuẩn bị form để Add
   const handleAdd = () => {
     setFormData({
-      name: "",
-      address: "",
-      city: "",
-      country: "Vietnam",
+      fullname: "",
       phone: "",
+      street: "",
+      city: "",
+      state: "",
+      country: "Vietnam",
+      isDefault: false,
     });
     setIsAdding(true);
   };
 
-  const handleSave = (e) => {
+  // Hàm lưu (Add/Update)
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (formData.id) {
-      // update
-      setAddresses((prev) =>
-        prev.map((a) => (a.id === formData.id ? { ...formData } : a))
-      );
-    } else {
-      // add
-      setAddresses((prev) => [
-        ...prev,
-        { ...formData, id: Date.now(), isPrimary: false },
-      ]);
+    try {
+      if (formData._id) {
+        // Update
+        await updateAddress(formData._id, formData);
+        alert("Address updated successfully!");
+      } else {
+        // Add
+        await createAddress(formData);
+        alert("Address added successfully!");
+      }
+
+      onAddressChange(); // Gọi hàm re-fetch từ parent
+      setIsAdding(false);
+
+      // Sau khi lưu thành công, nếu địa chỉ vừa lưu được đặt là mặc định, cần cập nhật selectedId
+      if (formData.isDefault) {
+        // Re-fetch sẽ lo phần này, nên chỉ cần reset form
+        setFormData({});
+      }
+    } catch (error) {
+      console.error("Error saving address:", error);
+      alert(`Failed to save address: ${error.message}`);
     }
-    setIsAdding(false);
   };
 
   return (
@@ -94,36 +143,53 @@ const ShipTo = () => {
             <input
               required
               type="text"
-              value={formData.name}
+              value={formData.fullname} // Sử dụng fullname
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({ ...formData, fullname: e.target.value })
               }
               className="border border-gray-300 rounded-md w-full px-3 py-2 text-sm focus:ring-2 focus:ring-[#3665f3]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Address</label>
+            <label className="block text-sm font-medium mb-1">
+              Street Address
+            </label>
             <input
               required
               type="text"
-              value={formData.address}
+              value={formData.street} // Sử dụng street
               onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
+                setFormData({ ...formData, street: e.target.value })
               }
               className="border border-gray-300 rounded-md w-full px-3 py-2 text-sm focus:ring-2 focus:ring-[#3665f3]"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">City</label>
-            <input
-              required
-              type="text"
-              value={formData.city}
-              onChange={(e) =>
-                setFormData({ ...formData, city: e.target.value })
-              }
-              className="border border-gray-300 rounded-md w-full px-3 py-2 text-sm focus:ring-2 focus:ring-[#3665f3]"
-            />
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">City</label>
+              <input
+                required
+                type="text"
+                value={formData.city}
+                onChange={(e) =>
+                  setFormData({ ...formData, city: e.target.value })
+                }
+                className="border border-gray-300 rounded-md w-full px-3 py-2 text-sm focus:ring-2 focus:ring-[#3665f3]"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">
+                State/Province
+              </label>
+              <input
+                type="text"
+                value={formData.state} // Thêm State
+                onChange={(e) =>
+                  setFormData({ ...formData, state: e.target.value })
+                }
+                className="border border-gray-300 rounded-md w-full px-3 py-2 text-sm focus:ring-2 focus:ring-[#3665f3]"
+              />
+            </div>
           </div>
           <div className="flex gap-3">
             <div className="flex-1">
@@ -150,6 +216,20 @@ const ShipTo = () => {
               />
             </div>
           </div>
+          <div className="flex items-center gap-2 pt-2">
+            <input
+              type="checkbox"
+              id="isDefault"
+              checked={formData.isDefault}
+              onChange={(e) =>
+                setFormData({ ...formData, isDefault: e.target.checked })
+              }
+              className="w-4 h-4 accent-[#3665f3]"
+            />
+            <label htmlFor="isDefault" className="text-sm font-medium">
+              Set as default shipping address
+            </label>
+          </div>
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
@@ -170,61 +250,68 @@ const ShipTo = () => {
         <>
           {/* === ADDRESS LIST === */}
           <div className="space-y-6">
-            {addresses.map((addr) => (
-              <div
-                key={addr.id}
-                className={`border border-gray-300 rounded-lg p-5 ${
-                  selectedId === addr.id ? "bg-blue-50" : "bg-white"
-                }`}
-              >
-                {/* LABELS */}
-                <div className="flex gap-2 mb-2">
-                  {selectedId === addr.id && (
-                    <span className="text-xs px-3 py-0.5 bg-[#3665f3] text-white rounded-full font-semibold">
-                      SELECTED
-                    </span>
-                  )}
-                  {addr.isPrimary && (
-                    <span className="text-xs px-3 py-0.5 bg-gray-200 text-gray-800 rounded-full font-semibold">
-                      PRIMARY ADDRESS
-                    </span>
-                  )}
-                </div>
-
-                {/* INFO */}
-                <p className="font-medium">{addr.name}</p>
-                <p>{addr.address}</p>
-                <p>{addr.city}</p>
-                <p>{addr.country}</p>
-                <p>{addr.phone}</p>
-
-                {/* ACTIONS */}
-                <div className="flex gap-2 mt-2 text-sm">
-                  {selectedId !== addr.id && (
+            {addresses.length === 0 ? (
+              <p className="text-gray-500 italic">
+                No shipping addresses found. Please add one.
+              </p>
+            ) : (
+              addresses.map((addr) => (
+                <div
+                  key={addr._id} // Sử dụng _id
+                  className={`border border-gray-300 rounded-lg p-5 ${
+                    selectedAddressId === addr._id ? "bg-blue-50" : "bg-white" // Sử dụng selectedAddressId
+                  }`}
+                >
+                  {/* LABELS */}
+                  <div className="flex gap-2 mb-2">
+                    {selectedAddressId === addr._id && (
+                      <span className="text-xs px-3 py-0.5 bg-[#3665f3] text-white rounded-full font-semibold">
+                        SELECTED
+                      </span>
+                    )}
+                    {addr.isDefault && ( // Kiểm tra isDefault
+                      <span className="text-xs px-3 py-0.5 bg-gray-200 text-gray-800 rounded-full font-semibold">
+                        PRIMARY ADDRESS
+                      </span>
+                    )}
+                  </div>
+                  {/* INFO */}
+                  <p className="font-medium">{addr.fullname}</p>
+                  <p>{addr.street}</p> {/* Sử dụng street */}
+                  <p>
+                    {addr.city} {addr.state && `, ${addr.state}`}
+                  </p>
+                  <p>{addr.country}</p>
+                  <p>{addr.phone}</p>
+                  {/* ACTIONS */}
+                  <div className="flex gap-2 mt-2 text-sm">
+                    {selectedAddressId !== addr._id && (
+                      <button
+                        onClick={() => handleSelect(addr._id)}
+                        className="text-[#3665f3] hover:underline"
+                      >
+                        Select
+                      </button>
+                    )}
                     <button
-                      onClick={() => handleSelect(addr.id)}
+                      onClick={() => handleEdit(addr._id)}
                       className="text-[#3665f3] hover:underline"
                     >
-                      Select
+                      Edit
                     </button>
-                  )}
-                  <button
-                    onClick={() => handleEdit(addr.id)}
-                    className="text-[#3665f3] hover:underline"
-                  >
-                    Edit
-                  </button>
-                  {!addr.isPrimary && (
-                    <button
-                      onClick={() => handleDelete(addr.id)}
-                      className="text-[#d93025] hover:underline"
-                    >
-                      Delete
-                    </button>
-                  )}
+                    {/* Không cho phép xóa nếu đây là địa chỉ mặc định */}
+                    {!addr.isDefault && (
+                      <button
+                        onClick={() => handleDelete(addr._id)}
+                        className="text-[#d93025] hover:underline"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* === BUTTONS === */}
@@ -236,7 +323,7 @@ const ShipTo = () => {
               Add a new address
             </button>
             <button
-              onClick={() => alert(`Using address ID: ${selectedId}`)}
+              onClick={() => setIsAdding(false)} // Thay thế alert bằng hành động đóng form/cancel
               className="px-5 py-2 border border-[#3665f3] rounded-full text-[#3665f3] text-sm font-medium hover:bg-blue-50"
             >
               Cancel

@@ -1,20 +1,45 @@
 import { SHIPPING_TOTAL_USD, USD_TO_VND_RATE } from "@/lib/constants";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import cartService from "@/services/cartService";
+import { getAddresses } from "@/services/addressService";
+import ShipTo from "@/components/ui/CheckOut/ShipTo";
+import { useRouter } from "next/navigation";
+import { getUserFromStorage } from "@/lib/utils";
 
 const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
+  const user = getUserFromStorage();
   const cartItems = cart.items || [];
+  const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
   const totalItemsCount = cart.totalItems || 0;
 
   const [appliedCouponData, setAppliedCouponData] = useState(null);
 
-  // Giá trị gốc từ cart prop
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+
+  const fetchAddresses = async () => {
+    try {
+      const data = await getAddresses();
+      setAddresses(data);
+
+      const defaultAddress = data.find((addr) => addr.isDefault) || data[0];
+      if (defaultAddress) {
+        setSelectedAddressId(defaultAddress._id);
+      }
+    } catch (error) {
+      console.error("Failed to fetch addresses:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
+
   const baseSubtotalUSD = parseFloat(cart.subtotal) || 0;
   const baseDiscountUSD = parseFloat(cart.discountTotal) || 0.0;
   const shippingUSD = SHIPPING_TOTAL_USD;
 
-  // Tính toán các giá trị hiển thị cuối cùng (Ưu tiên appliedCouponData)
   const currentSubtotalUSD = appliedCouponData
     ? appliedCouponData.cartTotal
     : baseSubtotalUSD;
@@ -23,36 +48,14 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
     ? appliedCouponData.discountAmount
     : baseDiscountUSD;
 
-  // Tính tổng cuối cùng: Subtotal + Shipping - Discount
   const currentTotalUSD = currentSubtotalUSD + shippingUSD - currentDiscountUSD;
-  // ---------------------------------
 
-  const [selectedAddress, setSelectedAddress] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const addresses = [
-    {
-      name: "Duy Anh",
-      address: "Số 32, Đống Đa, Đại học Công đoàn",
-      city: "Hà Nội, Việt Nam 000084",
-      country: "Vietnam",
-      phone: "0984432509",
-    },
-    {
-      name: "Nguyễn Minh",
-      address: "25 Nguyễn Trãi, Thanh Xuân",
-      city: "Hà Nội, Việt Nam 000085",
-      country: "Vietnam",
-      phone: "0912345678",
-    },
-    {
-      name: "Trần Hải",
-      address: "280 Lý Thường Kiệt, Quận 10",
-      city: "TP. Hồ Chí Minh, Việt Nam 700000",
-      country: "Vietnam",
-      phone: "0905123456",
-    },
-  ];
+  const isAddressSelected = selectedAddressId !== null;
+  const selectedAddress = addresses.find(
+    (addr) => addr._id === selectedAddressId
+  );
 
+  // handlers
   const handleRemoveItem = async (productId) => {
     if (!window.confirm("Are you sure you want to remove this item?")) return;
     try {
@@ -95,23 +98,16 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
       alert("Please enter a coupon code.");
       return;
     }
-
     try {
       const data = await cartService.applyCoupon(code);
       console.log(data);
-
-      // CẬP NHẬT TỨC THÌ STATE CHO ORDER SUMMARY
-      // Ghi đè tổng tiền và discount bằng dữ liệu từ API response
       setAppliedCouponData({
         discountAmount: data.discountAmount,
-        cartTotal: data.cartTotal, // cartTotal từ response là subtotal mới
+        cartTotal: data.cartTotal,
       });
-
-      // Vẫn gọi onCartUpdate để parent component fetch lại cart data đầy đủ từ server
       if (onCartUpdate) {
         onCartUpdate();
       }
-
       setCouponCode("");
       alert(data.message || `Coupon "${code}" applied successfully!`);
     } catch (error) {
@@ -124,9 +120,57 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
     }
   };
 
+  const handlePaymentSuccess = () => {
+    if (!isAddressSelected) {
+      alert("Please select a shipping address before confirming payment.");
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert("Your cart is empty. Cannot create an order.");
+      return;
+    }
+
+    // 1. Chuẩn bị danh sách sản phẩm (items)
+    // Tách các sản phẩm từ cấu trúc nhóm theo seller thành một mảng phẳng
+    const orderItems = cartItems.flatMap((group) =>
+      group.products.map((item) => ({
+        productId: item._id, // Mã sản phẩm
+        quantity: item.quantity, // Số lượng
+        unitPrice: item.price, // Giá đơn vị
+      }))
+    );
+
+    // 2. Xây dựng Payload Order
+    const orderPayload = {
+      // Dựa trên Order.js Schema:
+      buyerId: user.id, // Giả lập ID người mua
+      addressId: selectedAddressId, // ID địa chỉ đã chọn
+      totalPrice: parseFloat(currentTotalUSD.toFixed(2)), // Tổng tiền cuối cùng
+      status: "Paid", // Trạng thái sau khi giả lập thanh toán thành công
+      items: orderItems, // Danh sách sản phẩm
+
+      couponCodeApplied: appliedCouponData ? cart.couponCode : null,
+      shippingCost: SHIPPING_TOTAL_USD,
+      discountAmount: parseFloat(currentDiscountUSD.toFixed(2)),
+    };
+
+    // 3. Console log payload (Mô phỏng gửi API POST /api/orders)
+    console.log("=========================================");
+    console.log("✅ PAYMENT SUCCESSFUL. Order Payload to be sent to API:");
+    console.log(orderPayload);
+    console.log("=========================================");
+
+    // try {
+    //    const response = await orderService.createOrder(orderPayload);
+    //    router.push(`/order/${response.data.orderId}`);
+    // } catch (error) {
+    //    console.error("Order creation failed:", error);
+    // }
+  };
+
   return (
     <div className="bg-white min-h-screen text-[#111820] font-[Market Sans,Helvetica Neue,Helvetica,Arial,Roboto,sans-serif] flex flex-col items-center">
-      {/* ==== HEADER và BANNER (Giữ nguyên) ==== */}
       <div className="flex justify-between items-center w-[90%] max-w-[1200px] py-6 border-b border-gray-200">
         <div
           className="flex items-center gap-2 cursor-pointer"
@@ -139,33 +183,13 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
           />
           <h1 className="text-2xl font-semibold">Checkout</h1>
         </div>
-        <p className="text-sm text-gray-500">
-          How do you like our checkout?{" "}
-          <a href="#" className="text-[#3665f3] hover:underline font-medium">
-            Give us feedback
-          </a>
-        </p>
+        <p className="text-sm text-gray-500"></p>
       </div>
 
-      <div className="w-full bg-[#fff8e5] py-3 flex justify-center border-b border-yellow-300">
-        <div className="w-[90%] max-w-[1200px] flex justify-between items-center">
-          <p className="text-[15px] text-[#111820]">
-            Coupon, max. discount $120.{" "}
-            <a href="#" className="text-[#3665f3] hover:underline">
-              See details
-            </a>
-          </p>
-          <button className="px-5 py-2 border border-[#111820]/20 rounded-full bg-[#fff] text-[15px] font-medium hover:bg-gray-50">
-            Apply coupon
-          </button>
-        </div>
-      </div>
-
-      {/* ==== MAIN CONTENT (Giữ nguyên) ==== */}
+      {/* ==== MAIN CONTENT ==== */}
       <div className="flex justify-between w-[90%] max-w-[1200px] mt-10 gap-10">
-        {/* ==== LEFT SIDE (Giữ nguyên) ==== */}
+        {/* ==== LEFT SIDE ==== */}
         <div className="flex flex-col w-[68%] space-y-12">
-          {/* PAY WITH (Giữ nguyên) */}
           <section>
             <h2 className="text-[20px] font-semibold mb-5">Pay with</h2>
             <div className="space-y-4">
@@ -206,17 +230,19 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
             </div>
           </section>
 
-          {/* ==== SHIP TO ==== */}
-          <ShipTo />
+          <ShipTo
+            addresses={addresses}
+            selectedAddressId={selectedAddressId}
+            setSelectedAddressId={setSelectedAddressId}
+            onAddressChange={fetchAddresses}
+          />
 
-          {/* REVIEW ORDER (Giữ nguyên) */}
           <section className="border-t border-gray-200 pt-6">
             <h2 className="text-[20px] font-semibold mb-6">Review order</h2>
 
             {cartItems.length === 0 ? (
               <p className="italic text-gray-500">Your cart is empty.</p>
             ) : (
-              // Lặp qua các nhóm người bán
               cartItems.map((group) => (
                 <div
                   key={group.seller._id}
@@ -232,7 +258,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                     </span>
                   </div>
 
-                  {/* Lặp qua các sản phẩm trong nhóm */}
                   {group.products.map((item) => (
                     <div key={item._id} className="flex gap-4 pt-4">
                       <img
@@ -319,7 +344,7 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
             )}
           </section>
 
-          {/* GIFT CARDS AND COUPONS (Đã sửa logic coupon) */}
+          {/* GIFT CARDS AND COUPONS (Giữ nguyên) */}
           <section className="border-t border-gray-200 pt-6">
             <h2 className="text-[20px] font-semibold mb-5">Coupons</h2>
             <p className="text-[14px] mb-4">
@@ -343,6 +368,7 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
             </div>
 
             <div className="text-[14px] w-100 space-y-3 mb-[50px]">
+              <span className="font-bold text-[18px]">Coupons:</span>
               {Array.isArray(coupons) ? (
                 <>
                   {coupons.map((coupon) => (
@@ -350,10 +376,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                       className="flex items-center gap-2 cursor-pointer"
                       key={coupon._id}
                     >
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 accent-[#3665f3]"
-                      />
                       <span>{coupon.code ? coupon.code : ""}</span>
                       <span className="ml-auto text-gray-500 text-sm">
                         Available discount: {coupon.discountPercent}%
@@ -368,14 +390,13 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
           </section>
         </div>
 
-        {/* ==== RIGHT SIDE (Order Summary - ĐÃ CẬP NHẬT TỔNG TIỀN & DISCOUNT) ==== */}
+        {/* ==== RIGHT SIDE (Order Summary) ==== */}
         <div className="w-[30%]">
           <div className="sticky top-10 bg-[#f9f9f9] border border-gray-200 rounded-xl shadow-sm p-6">
             <h3 className="text-[20px] font-semibold mb-5">Order Summary</h3>
             <div className="space-y-2 text-[15px] text-[#111820]">
               <div className="flex justify-between">
                 <span>Items ({totalItemsCount})</span>
-                {/* HIỂN THỊ SUB TOTAL MỚI (nếu có appliedCouponData) */}
                 <span>US ${currentSubtotalUSD.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
@@ -399,13 +420,11 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
               </div>
               <div className="flex justify-between text-green-600">
                 <span>Discount </span>
-                {/* HIỂN THỊ DISCOUNT MỚI */}
                 <span>-US ${currentDiscountUSD.toFixed(2)}</span>
               </div>
               <hr className="my-3 border-gray-300" />
               <div className="flex justify-between font-semibold text-[17px]">
                 <span>Order total</span>
-                {/* TỔNG TIỀN CUỐI CÙNG MỚI */}
                 <span>US ${currentTotalUSD.toFixed(2)}</span>
               </div>
               <p className="text-sm text-gray-500">
@@ -420,11 +439,21 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
               </a>
               .
             </p>
-            <button className="w-full mt-6 py-3 bg-gray-300 text-gray-600 font-semibold rounded-full cursor-not-allowed">
+            <button
+              onClick={handlePaymentSuccess}
+              className={`w-full mt-6 py-3 font-semibold rounded-full ${
+                isAddressSelected
+                  ? "bg-[#3665f3] text-white hover:bg-[#2953c6]"
+                  : "bg-gray-300 text-gray-600 cursor-not-allowed"
+              }`}
+              disabled={!isAddressSelected || cartItems.length === 0}
+            >
               Confirm and pay
             </button>
             <p className="text-center text-xs text-gray-500 mt-3">
-              Select a payment method
+              {isAddressSelected
+                ? `Shipping to: ${selectedAddress?.fullname || ""}`
+                : "Please select a shipping address"}
             </p>
             <p className="text-center text-xs text-gray-400 mt-4">
               Purchase protected by{" "}
@@ -435,60 +464,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
           </div>
         </div>
       </div>
-
-      {/* ==== MODAL ADDRESS SELECT ==== */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-[480px] rounded-2xl shadow-xl p-6">
-            <h3 className="text-xl font-semibold mb-4">
-              Select a shipping address
-            </h3>
-            <div className="space-y-3 max-h-[300px] overflow-y-auto">
-              {addresses.map((addr, idx) => (
-                <label
-                  key={idx}
-                  className={`block border rounded-lg p-4 cursor-pointer transition ${
-                    selectedAddress === idx
-                      ? "border-[#3665f3] bg-blue-50"
-                      : "border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="address"
-                      className="mt-1 w-5 h-5 accent-[#3665f3]"
-                      checked={selectedAddress === idx}
-                      onChange={() => setSelectedAddress(idx)}
-                    />
-                    <div className="text-sm">
-                      <p className="font-medium">{addr.name}</p>
-                      <p>{addr.address}</p>
-                      <p>{addr.city}</p>
-                      <p>{addr.country}</p>
-                      <p>{addr.phone}</p>
-                    </div>
-                  </div>
-                </label>
-              ))}
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-5 py-2 text-sm font-medium rounded-full border border-gray-300 hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-5 py-2 text-sm font-medium rounded-full bg-[#3665f3] text-white hover:bg-[#2953c6]"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
