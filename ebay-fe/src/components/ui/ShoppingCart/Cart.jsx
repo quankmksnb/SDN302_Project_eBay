@@ -169,7 +169,7 @@ const Cart = () => {
 
                 <div className="flex justify-between gap-4">
                   <img
-                    src={item.images[0]}
+                    src={item.images ? item.images[0] : ""}
                     alt={item.name}
                     className="w-[110px] h-[110px] object-cover rounded-lg border"
                   />
