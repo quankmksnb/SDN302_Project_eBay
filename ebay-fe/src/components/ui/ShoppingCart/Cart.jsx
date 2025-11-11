@@ -1,4 +1,5 @@
 "use client";
+import { USD_TO_VND_RATE } from "@/lib/constants";
 import { getUserFromStorage } from "@/lib/utils";
 import cartService from "@/services/cartService";
 import { useRouter } from "next/navigation";
@@ -57,7 +58,6 @@ const Cart = () => {
   const [cart, setCart] = useState([]);
   const router = useRouter();
 
-  const USD_TO_VND_RATE = 26300;
 
   const fetchCart = async () => {
     setLoading(true);

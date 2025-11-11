@@ -87,6 +87,24 @@ const cartService = {
       throw error.response?.data || error;
     }
   },
+
+  getCartForCheckout: async () => {
+    try {
+      const res = await api.get("/cart/by-seller");
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  applyCoupon: async (code) => {
+    try {
+      const response = await api.post("/cart/apply-coupon", { code });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
 export default cartService;

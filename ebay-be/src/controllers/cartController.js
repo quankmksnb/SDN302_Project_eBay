@@ -1,5 +1,7 @@
 import { calculateCouponForCart } from "../helpers/couponHelper.js";
 import Cart from "../models/Cart.js";
+import Product from "../models/Product.js";
+import User from "../models/User.js";
 
 /**
  * GET /api/cart
@@ -247,5 +249,85 @@ export const mergeGuestCart = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Server error while merging cart" });
+  }
+};
+
+export const getCartBySeller = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const cart = await Cart.findOne({ userId })
+      .populate({
+        path: "items.productId",
+        model: Product,
+        select: "name price images description sellerId",
+        populate: {
+          path: "sellerId",
+          model: User,
+          select: "_id username email",
+        },
+      })
+      .lean();
+
+    if (!cart) {
+      return res.status(200).json({
+        success: true,
+        cart: {
+          userId,
+          items: [],
+          totalItems: 0,
+          subtotal: 0,
+        },
+      });
+    }
+
+    const groupedItems = {};
+    let totalItems = 0;
+    let subtotal = 0;
+
+    cart.items.forEach((cartItem) => {
+      if (!cartItem.productId) return;
+
+      const product = cartItem.productId;
+      const seller = product.sellerId;
+      const sellerId = seller._id.toString();
+
+      const price = parseFloat(product.price) || 0;
+      const quantity = cartItem.quantity || 0;
+
+      totalItems += quantity;
+      subtotal += price * quantity;
+
+      const { sellerId: _, ...productDetails } = product;
+      const productWithQuantity = {
+        ...productDetails,
+        quantity: quantity,
+      };
+
+      if (!groupedItems[sellerId]) {
+        groupedItems[sellerId] = {
+          seller: seller,
+          products: [],
+        };
+      }
+
+      groupedItems[sellerId].products.push(productWithQuantity);
+    });
+
+    const formattedItems = Object.values(groupedItems);
+
+    const formattedCart = {
+      userId: cart.userId,
+      items: formattedItems,
+      totalItems: totalItems,
+      subtotal: subtotal,
+    };
+
+    return res.status(200).json({ success: true, cart: formattedCart });
+  } catch (error) {
+    console.error("Error getting cart:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 };
