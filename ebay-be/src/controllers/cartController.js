@@ -1,3 +1,4 @@
+import { calculateCouponForCart } from "../helpers/couponHelper.js";
 import Cart from "../models/Cart.js";
 
 /**
@@ -150,5 +151,31 @@ export const clearCart = async (req, res) => {
       message: "Server error while clearing cart",
       error,
     });
+  }
+};
+
+export const applyCoupon = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { code } = req.body;
+
+    if (!code) return res.status(400).json({ message: "Coupon code required" });
+
+    // 1. Lấy cart
+    let cart = await Cart.findOne({ userId }).populate("items.productId");
+    if (!cart || cart.items.length === 0)
+      return res.status(400).json({ message: "Cart is empty" });
+
+    // 2. Tính toán coupon
+    const result = await calculateCouponForCart(userId, cart, code);
+
+    return res.status(200).json({
+      success: true,
+      message: `Coupon ${code} applied successfully (calculation only)`,
+      ...result,
+    });
+  } catch (error) {
+    console.error("Apply coupon error:", error);
+    return res.status(400).json({ success: false, message: error.message });
   }
 };

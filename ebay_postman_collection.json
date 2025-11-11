@@ -542,6 +542,307 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Coupons",
+			"item": [
+				{
+					"name": "getAllCoupons",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9999/api/coupons",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"coupons"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getCouponById",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9999/api/coupons/6912c091fd206a4dbc790131",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"coupons",
+								"6912c091fd206a4dbc790131"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createCoupon",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"code\": \"DISCOUNT50\",\r\n  \"discountPercent\": 50,\r\n  \"startDate\": \"2025-11-01T00:00:00.000Z\",\r\n  \"endDate\": \"2025-12-31T23:59:59.999Z\",\r\n  \"status\": \"active\",\r\n  \"type\": \"global\",\r\n  \"productIds\": [],\r\n  \"maxUsage\": 1000,\r\n  \"maxUsagePerUser\": 5,\r\n  \"minOrderValue\": 0,\r\n  \"maxDiscountAmount\": 500000\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9999/api/coupons",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"coupons"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateCoupon",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"discountPercent\": 60,\r\n  \"status\": \"active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9999/api/coupons/6912c091fd206a4dbc790131",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"coupons",
+								"6912c091fd206a4dbc790131"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteCoupon",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9999/api/coupons/6912c091fd206a4dbc790131",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"coupons",
+								"6912c091fd206a4dbc790131"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getUserCoupons",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTFhYmE3YjEwMjI3ZDE0NDk3MTZlOCIsImVtYWlsIjoidmluaGh2MjhAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NjI4MzczMjgsImV4cCI6MTc2MjkyMzcyOH0.F-O1WFg6OeibRtZrcdnwBwnk1BaKTZwPispHV6l-cxE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9999/api/coupons/my",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"coupons",
+								"my"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Address",
+			"item": [
+				{
+					"name": "getAddresses",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTFhYmE3YjEwMjI3ZDE0NDk3MTZlOCIsImVtYWlsIjoidmluaGh2MjhAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NjI4Mzk3NjUsImV4cCI6MTc2MjkyNjE2NX0.-N4IA0TFV5aVWocRiV8N73_hRxk0G_0RIfBhNIZldFk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9999/api/addresses",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"addresses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createAddress",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTFhYmE3YjEwMjI3ZDE0NDk3MTZlOCIsImVtYWlsIjoidmluaGh2MjhAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NjI4Mzk3NjUsImV4cCI6MTc2MjkyNjE2NX0.-N4IA0TFV5aVWocRiV8N73_hRxk0G_0RIfBhNIZldFk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fullname\": \"Nguyen Van B\",\r\n  \"phone\": \"0912345678\",\r\n  \"street\": \"456 Nguyen Trai\",\r\n  \"city\": \"Ho Chi Minh\",\r\n  \"state\": \"HCM\",\r\n  \"country\": \"Vietnam\",\r\n  \"isDefault\": true\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9999/api/addresses",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"addresses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateAddress",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTFhYmE3YjEwMjI3ZDE0NDk3MTZlOCIsImVtYWlsIjoidmluaGh2MjhAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NjI4Mzk3NjUsImV4cCI6MTc2MjkyNjE2NX0.-N4IA0TFV5aVWocRiV8N73_hRxk0G_0RIfBhNIZldFk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fullname\": \"Nguyen Van C\",\r\n  \"phone\": \"0987654321\",\r\n  \"isDefault\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9999/api/addresses/6912cd4eeddec42745072226",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"addresses",
+								"6912cd4eeddec42745072226"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deteleAddress",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTFhYmE3YjEwMjI3ZDE0NDk3MTZlOCIsImVtYWlsIjoidmluaGh2MjhAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NjI4Mzk3NjUsImV4cCI6MTc2MjkyNjE2NX0.-N4IA0TFV5aVWocRiV8N73_hRxk0G_0RIfBhNIZldFk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9999/api/addresses/6912cd4eeddec42745072226",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"addresses",
+								"6912cd4eeddec42745072226"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
