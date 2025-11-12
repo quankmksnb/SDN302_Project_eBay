@@ -3,10 +3,14 @@ import User from "./User.js";
 import Order from "./Order.js";
 
 const returnRequestSchema = mongoose.Schema({
-  orderId: { type: Schema.Types.ObjectId, ref: "Order", required: true },
-  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: "Order", required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   reason: String,
-  status: { type: String, default: "pending" }, // Create enum for: Pending, Approved, Rejected
+  status: { 
+    type: String, 
+    default: "pending", 
+    enum: ["pending", "approved", "rejected", "completed"] 
+  }, 
   createdAt: { type: Date, default: Date.now },
 });
 

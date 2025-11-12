@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { getNotifications, maskAsRead } from "@/services/notificationService";
 import { timeAgo } from "@/lib/utils";
 import cartService from "@/services/cartService";
+import { clearCartLocal } from "@/lib/cartLocal";
 
 // Helper function để lấy user từ Local hoặc Session Storage
 const getUserFromStorage = () => {
@@ -101,7 +102,7 @@ export default function Header() {
       sessionStorage.removeItem("user"); // Đã thêm
       sessionStorage.removeItem("accessToken");
       sessionStorage.removeItem("refreshToken");
-
+      clearCartLocal();
       setUser(null);
       window.location.href = "/";
     }

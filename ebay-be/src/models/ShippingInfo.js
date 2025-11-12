@@ -8,8 +8,9 @@ const shippingInfoSchema = mongoose.Schema({
   },
   carrier: { type: String, required: true },
   trackingNumber: { type: String, required: true },
-  status: { type: String, default: "shipping" },
+  status: { type: String, default: "shipping" }, // Enum: shipping, delivered, canceled, etc.
   estimateArrival: { type: Date, required: true },
+  deliveredDate: { type: Date },
 });
 
 export default mongoose.model("ShippingInfo", shippingInfoSchema);
