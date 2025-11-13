@@ -20,7 +20,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [showPopup, setShowPopup] = useState(false);
   const [relatedItems, setRelatedItems] = useState([]);
-
+  console.log(product);
   // const handleAddToCart = async () => {
   //   if (!product) return;
   //   try {
@@ -615,13 +615,13 @@ export default function ProductDetail() {
                       <div className="flex items-start gap-4">
                         <img
                           src={r.reviewerId?.avatarURL || "/user.png"}
-                          alt={r.reviewerId?.username}
+                          alt={r.reviewerId?.email}
                           className="w-12 h-12 rounded-full"
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <p className="font-semibold text-gray-900">
-                              {r.reviewerId?.username}
+                              {r.reviewerId?.email}
                             </p>
                             <p className="text-yellow-500 text-lg">
                               {"★".repeat(r.rating)}

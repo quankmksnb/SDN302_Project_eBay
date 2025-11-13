@@ -9,7 +9,6 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { getCategories } from "@/services/categoryService";
-import Checkout from "@/app/checkout/page";
 
 export default function HomePage() {
   const carouselRef = useRef(null);
@@ -314,7 +313,7 @@ export default function HomePage() {
 
       {/* Categories Section */}
       <section className="w-full bg-white py-12 mt-8">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-[1488px] mx-auto px-6">
           <h2 className="text-3xl font-bold mb-8 text-gray-900">
             Explore the catalog
           </h2>

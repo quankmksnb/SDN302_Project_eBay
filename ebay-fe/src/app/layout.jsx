@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import "./globals.scss";
 import NextTopLoader from "nextjs-toploader";
+import Loading from "@/components/shared/Loading";
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
@@ -28,7 +29,7 @@ export default function RootLayout({ children }) {
         {!shouldHideHeaderFooter && <Header />}
         <NextTopLoader />
         <main>
-          <Suspense fallback={<div>Đang tải...</div>}>{children}</Suspense>
+          <Suspense fallback={<Loading />}>{children}</Suspense>
         </main>
 
         {!shouldHideHeaderFooter && <Footer />}

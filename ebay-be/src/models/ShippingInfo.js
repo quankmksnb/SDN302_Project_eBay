@@ -12,12 +12,12 @@ const shippingInfoSchema = mongoose.Schema({
     type: String,
     default: "Pending_Pickup",
     enum: [
-      "Pending_Pickup", // Chờ bên vận chuyển lấy hàng
-      "In_Transit", // Đang trên đường vận chuyển
-      "Out_for_Delivery", // Đang giao
-      "Delivered", // Đã giao hàng thành công
-      "Canceled", // Đơn hàng bị hủy
-      "Failed_Attempt", // Thử giao thất bại
+      "Pending_Pickup",
+      "In_Transit", 
+      "Out_for_Delivery",
+      "Delivered",
+      "Canceled", 
+      "Failed_Attempt", 
     ],
   },
   estimateArrival: { type: Date, required: true },
