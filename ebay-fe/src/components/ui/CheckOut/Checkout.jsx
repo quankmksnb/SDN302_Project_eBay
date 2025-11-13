@@ -368,11 +368,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                     value: "COD",
                     icon: "https://cdn-icons-png.flaticon.com/512/1040/1040227.png",
                   },
-                  {
-                    label: "Credit Card (UI only)",
-                    value: "CARD",
-                    icon: "https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg",
-                  },
                 ].map((m) => (
                   <label
                     key={m.value}
