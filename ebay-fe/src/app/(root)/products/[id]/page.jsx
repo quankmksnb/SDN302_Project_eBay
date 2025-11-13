@@ -492,9 +492,7 @@ export default function ProductDetail() {
               {product.isAuction ? (
                 <button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full text-lg transition"
-                  onClick={() => {
-                    console.log("Place bid");
-                  }}
+                  onClick={() => router.push(`/products/${product._id}/bid`)}
                 >
                   Place bid
                 </button>
