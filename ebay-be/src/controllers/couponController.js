@@ -2,6 +2,16 @@ import Coupon from "../models/Coupon.js";
 import User from "../models/User.js";
 
 /**
+ * Helper function to update availableCoupons for multiple users.
+ * @param {ObjectId} couponId
+ * @param {Array<ObjectId>} [targetUserIds] - If null, targets ALL users.
+ */
+const assignCouponToUsers = async (couponId, targetUserIds = null) => {
+  const filter = targetUserIds ? { _id: { $in: targetUserIds } } : {};
+  await User.updateMany(filter, { $addToSet: { availableCoupons: couponId } });
+};
+
+/**
  * [GET] /api/coupons
  */
 export const getAllCoupons = async (req, res) => {
@@ -58,6 +68,7 @@ export const createCoupon = async (req, res) => {
       maxUsagePerUser = 1,
       minOrderValue,
       maxDiscountAmount,
+      targetUserIds = [],
     } = req.body;
 
     const existing = await Coupon.findOne({ code });
@@ -65,6 +76,7 @@ export const createCoupon = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Coupon code already exists" });
+
     const newCoupon = await Coupon.create({
       code,
       discountPercent,
@@ -79,8 +91,14 @@ export const createCoupon = async (req, res) => {
       maxDiscountAmount,
     });
 
+    if (type === "global") {
+      await assignCouponToUsers(newCoupon._id);
+    } else if (targetUserIds.length > 0) {
+      await assignCouponToUsers(newCoupon._id, targetUserIds);
+    }
+
     res.status(201).json({
-      message: "Coupon created successfully",
+      message: "Coupon created successfully and assigned to target users",
       coupon: newCoupon,
     });
   } catch (error) {
@@ -124,11 +142,23 @@ export const updateCoupon = async (req, res) => {
  */
 export const deleteCoupon = async (req, res) => {
   try {
-    const coupon = await Coupon.findByIdAndDelete(req.params.id);
+    const couponId = req.params.id;
+    const coupon = await Coupon.findByIdAndDelete(couponId);
     if (!coupon)
       return res
         .status(404)
         .json({ success: false, message: "Coupon not found" });
+
+    await User.updateMany(
+      { $or: [{ availableCoupons: couponId }, { usedCoupons: couponId }] },
+      {
+        $pull: {
+          availableCoupons: couponId,
+          usedCoupons: couponId,
+        },
+      }
+    );
+
     res
       .status(200)
       .json({ success: true, message: "Coupon deleted successfully" });
@@ -147,12 +177,18 @@ export const deleteCoupon = async (req, res) => {
  */
 export const getCouponsByUser = async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: User ID not found in token" });
+    }
     const userId = req.user.id;
     const now = new Date();
+
     const user = await User.findById(userId).select("availableCoupons").lean();
-    console.log(user);
+
     if (!user || !user.availableCoupons || user.availableCoupons.length === 0) {
-      return res.status(404).json({ coupons: [] });
+      return res.status(200).json({ myCoupons: [] });
     }
 
     const coupons = await Coupon.find({
@@ -160,23 +196,92 @@ export const getCouponsByUser = async (req, res) => {
       status: "active",
       startDate: { $lte: now },
       endDate: { $gte: now },
-    }).lean();
+    })
+      .select(
+        "_id code discountPercent startDate endDate maxUsagePerUser type minOrderValue maxDiscountAmount productIds"
+      )
+      .lean();
 
-    const formatted = coupons.map((coupon) => ({
-      _id: coupon._id,
-      code: coupon.code,
-      discountPercent: 25,
-      startDate: coupon.discountPercent,
-      endDate: coupon.endDate,
-      maxUsagePerUser: coupon.maxUsagePerUser,
-      status: coupon.status,
-      productIds: [],
-      type: coupon.type,
-      minOrderValue: 0,
-    }));
-    res.status(200).json({ myCoupons: formatted });
+    res.status(200).json({ myCoupons: coupons });
   } catch (error) {
     console.error("Error fetching coupons by user:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+/**
+ * [POST] /api/coupons/use
+ */
+export const useCoupon = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { couponId } = req.body;
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: User ID not found." });
+    }
+
+    if (!couponId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Coupon ID is required" });
+    }
+
+    const [user, coupon] = await Promise.all([
+      User.findById(userId).select("availableCoupons usedCoupons"),
+      Coupon.findById(couponId).select("_id"),
+    ]);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    if (!coupon) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Coupon not found" });
+    }
+
+    const couponIdStr = couponId.toString();
+    const isAvailable = user.availableCoupons.some(
+      (id) => id.toString() === couponIdStr
+    );
+
+    if (!isAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: "Coupon not available in user's list or already used",
+      });
+    }
+
+    const updateResult = await User.updateOne(
+      { _id: userId },
+      {
+        $pull: { availableCoupons: couponId },
+        $addToSet: { usedCoupons: couponId },
+      }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Failed to update user's coupon list. Check if coupon is available.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Coupon successfully transferred from available to used list.",
+    });
+  } catch (error) {
+    console.error("Use coupon error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occurred while recording coupon usage.",
+    });
   }
 };

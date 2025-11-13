@@ -6,6 +6,7 @@ import {
   getCouponById,
   getCouponsByUser,
   updateCoupon,
+  useCoupon,
 } from "../controllers/couponController.js";
 import { authenticateToken } from "../middlewares/authMiddleware.js";
 
@@ -16,5 +17,5 @@ router.get("/:id", getCouponById);
 router.post("/", createCoupon);
 router.patch("/:id", updateCoupon);
 router.delete("/:id", deleteCoupon);
-
+router.post("/use", authenticateToken, useCoupon);
 export default router;

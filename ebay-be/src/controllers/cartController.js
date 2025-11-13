@@ -32,7 +32,6 @@ export const getCart = async (req, res) => {
       title: item.productId.title,
     }));
     cart.items = formatted;
-    console.log(cart);
     return res.status(200).json({ success: true, cart });
   } catch (error) {
     console.error("Error getting cart:", error);
@@ -179,20 +178,29 @@ export const clearCart = async (req, res) => {
     });
   }
 };
-
 export const applyCoupon = async (req, res) => {
   try {
     const userId = req.user.id;
     const { code } = req.body;
 
-    if (!code) return res.status(400).json({ message: "Coupon code required" });
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: User ID not found." });
+    }
 
-    // 1. Lấy cart
+    if (!code) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Coupon code required" });
+    }
+
     let cart = await Cart.findOne({ userId }).populate("items.productId");
-    if (!cart || cart.items.length === 0)
-      return res.status(400).json({ message: "Cart is empty" });
 
-    // 2. Tính toán coupon
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
+
     const result = await calculateCouponForCart(userId, cart, code);
 
     return res.status(200).json({
@@ -202,7 +210,10 @@ export const applyCoupon = async (req, res) => {
     });
   } catch (error) {
     console.error("Apply coupon error:", error);
-    return res.status(400).json({ success: false, message: error.message });
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Invalid coupon or calculation error",
+    });
   }
 };
 
