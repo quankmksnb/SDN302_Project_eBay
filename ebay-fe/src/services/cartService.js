@@ -10,7 +10,7 @@ import api from "@/services";
 
 const cartService = {
   getCart: async () => {
-    const user = getUserFromStorage();
+    const user = getUserFromStorage(localStorage, sessionStorage);
     if (!user) {
       return { success: true, cart: { items: getCartLocal() } };
     }
@@ -23,7 +23,7 @@ const cartService = {
   },
 
   addToCart: async (product, quantity = 1) => {
-    const user = getUserFromStorage();
+    const user = getUserFromStorage(localStorage, sessionStorage);
     if (!user) {
       addToCartLocal(product, quantity);
       return { success: true, local: true };
@@ -42,7 +42,7 @@ const cartService = {
   },
 
   updateCartItem: async (productId, quantity) => {
-    const user = getUserFromStorage();
+    const user = getUserFromStorage(localStorage, sessionStorage);
     if (!user) {
       updateCartItemLocal(productId, quantity);
       return { success: true, local: true };
@@ -57,7 +57,7 @@ const cartService = {
   },
 
   removeFromCart: async (productId) => {
-    const user = getUserFromStorage();
+    const user = getUserFromStorage(localStorage, sessionStorage);
     if (!user) {
       removeFromCartLocal(productId);
       return { success: true, local: true };
@@ -73,7 +73,7 @@ const cartService = {
   },
 
   clearCart: async () => {
-    const user = getUserFromStorage();
+    const user = getUserFromStorage(localStorage, sessionStorage);
     if (!user) {
       clearCartLocal();
       return { success: true, local: true };

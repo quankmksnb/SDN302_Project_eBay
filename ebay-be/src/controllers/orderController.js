@@ -1,4 +1,4 @@
-import { handleServerError } from "../helpers.js";
+import { handleServerError } from "../helpers/index.js";
 import { createNotification } from "../helpers/notificationHelper.js";
 import Order from "../models/Order.js";
 import ReturnRequest from "../models/ReturnRequest.js";
@@ -349,12 +349,10 @@ export const getOrderDetails = async (req, res) => {
     const isAdmin = req.user.role === "admin";
 
     if (!isOwner && !isAdmin) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Forbidden: You do not have access to this order",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You do not have access to this order",
+      });
     }
 
     const shippingInfo = await ShippingInfo.findOne({ orderId: order._id });

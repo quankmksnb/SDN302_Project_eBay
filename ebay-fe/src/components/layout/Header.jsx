@@ -109,7 +109,7 @@ export default function Header() {
   };
 
   useEffect(() => {
-    const userData = getUserFromStorage(); // Dùng helper function
+    const userData = getUserFromStorage(localStorage, sessionStorage);
     if (userData) {
       fetchNotifications();
       setUser(userData);
@@ -119,7 +119,7 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const userData = getUserFromStorage(); // Dùng helper function
+    const userData = getUserFromStorage(localStorage, sessionStorage);
     if (userData) setUser(userData);
     fetchCartCount();
     const handleUpdate = () => fetchCartCount();

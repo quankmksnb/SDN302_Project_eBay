@@ -12,7 +12,6 @@ const CheckoutPage = () => {
     try {
       const data = await getUserCoupons();
       setCoupons(data.myCoupons);
-      console.log(Array.isArray(data.myCoupons));
     } catch (error) {
       console.error(error);
     }
@@ -22,7 +21,7 @@ const CheckoutPage = () => {
     try {
       const data = await cartService.getCartForCheckout();
       setCart(data.cart);
-      } catch (error) {
+    } catch (error) {
       console.error(error);
     }
   };
