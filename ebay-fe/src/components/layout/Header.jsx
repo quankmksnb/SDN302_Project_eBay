@@ -36,7 +36,6 @@ export default function Header() {
   const fetchNotifications = async () => {
     try {
       const data = await getNotifications();
-      console.log(data);
       setUnreadCount(data.unReadCount);
       setNotification(
         data.notifications.map((noti) => ({
