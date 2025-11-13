@@ -284,19 +284,19 @@ export default function Header() {
               onMouseLeave={() => setShowNotifications(false)}
             >
               {unreadCount > 0 && (
-                <span className="text-red-500 text-[12px] font-semibold absolute top-[-3px] right-[7px]">
+                <span className="text-white text-[12px] flex items-center justify-center rounded-full font-semibold absolute top-[-3px] right-[2px] bg-red-500 w-[16px] h-[16px]">
                   {unreadCount}
                 </span>
               )}
 
-              <Link href="/account/settings#notification">
+              <div className="cursor-pointer">
                 <Image
                   src="/icons/bell.svg"
                   width={20}
                   height={20}
                   alt="Bell icon"
                 />
-              </Link>
+              </div>
 
               <NotificationModal
                 router

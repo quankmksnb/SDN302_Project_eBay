@@ -1,3 +1,4 @@
+import { createNotification } from "../helpers/notificationHelper.js";
 import Coupon from "../models/Coupon.js";
 import User from "../models/User.js";
 
@@ -93,12 +94,30 @@ export const createCoupon = async (req, res) => {
 
     if (type === "global") {
       await assignCouponToUsers(newCoupon._id);
+
+      await createNotification({
+        targetType: "all",
+        title: "Coupon mới cho toàn bộ người dùng!",
+        message: `Mã giảm giá ${code} đã được phát hành. Giảm ${discountPercent}% cho đơn hàng của bạn!`,
+        link: `/coupons/${newCoupon._id}`,
+        data: { couponId: newCoupon._id },
+      });
     } else if (targetUserIds.length > 0) {
       await assignCouponToUsers(newCoupon._id, targetUserIds);
+
+      await createNotification({
+        targetType: "multiple",
+        title: "You just received a new coupon code!",
+        message: `Discount code ${discountPercent}% has been sent to your account: ${code}`,
+        link: `/coupons/${newCoupon._id}`,
+        data: { couponId: newCoupon._id },
+        userIds: targetUserIds,
+      });
     }
 
     res.status(201).json({
-      message: "Coupon created successfully and assigned to target users",
+      success: true,
+      message: "Coupon created successfully and notifications sent.",
       coupon: newCoupon,
     });
   } catch (error) {

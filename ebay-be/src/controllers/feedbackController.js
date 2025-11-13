@@ -66,6 +66,59 @@ export const updateSellerFeedback = async (sellerId) => {
   }
 };
 
+// --- HÀM TẠO FEEDBACK MỚI ---
+/**
+ * POST /api/feedbacks
+ * @description: Khởi tạo bản ghi feedback cho một seller mới.
+ * Các trường averageRating, totalReviews, positiveRate sẽ
+ * sử dụng giá trị default (0) đã định nghĩa trong schema.
+ */
+export const createFeedback = async (req, res) => {
+  try {
+    const { sellerId } = req.body;
+
+    if (!sellerId) {
+      return res.status(400).json({
+        success: false,
+        message: "sellerId is required to create a feedback entry.",
+      });
+    }
+
+    // Kiểm tra xem Feedback đã tồn tại chưa để tránh trùng lặp
+    const existingFeedback = await Feedback.findOne({ sellerId });
+    if (existingFeedback) {
+      return res.status(409).json({
+        success: false,
+        message: "Feedback for this seller already exists.",
+        feedback: existingFeedback,
+      });
+    }
+
+    const newFeedback = new Feedback({ sellerId });
+
+    const savedFeedback = await newFeedback.save();
+
+    return res.status(201).json({
+      success: true,
+      feedback: savedFeedback,
+      message: "Feedback entry successfully created.",
+    });
+  } catch (error) {
+    console.error("Create seller feedback error:", error);
+    // Xử lý lỗi unique constraint (sellerId) nếu có
+    if (error.code === 11000) {
+      return res
+        .status(409)
+        .json({
+          success: false,
+          message: "Feedback for this seller already exists.",
+        });
+    }
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+// --- KẾT THÚC HÀM TẠO FEEDBACK MỚI ---
+
 /**
  * GET /api/feedbacks/:sellerId
  */

@@ -52,7 +52,7 @@ export const createOrder = async (req, res) => {
       } is being processed. Tracking number: ${
         savedShippingInfo.trackingNumber
       }. Estimated arrival: ${estimateArrivalDate.toLocaleDateString()}.`,
-      link: `/orders/${savedOrder._id}`,
+      link: `/order/${savedOrder._id}`,
       data: {
         orderId: savedOrder._id,
         status: savedOrder.status,
@@ -120,7 +120,7 @@ export const updateOrderStatus = async (req, res) => {
         userId: updatedOrder.buyerId,
         title,
         message,
-        link: `/orders/${updatedOrder._id}`,
+        link: `/order/${updatedOrder._id}`,
         data: { orderId: updatedOrder._id, status: updatedOrder.status },
       });
     }
@@ -180,7 +180,7 @@ export const updateShippingInfoStatus = async (req, res) => {
         userId: order.buyerId,
         title,
         message,
-        link: `/orders/${orderId}`,
+        link: `/order/${orderId}`,
       });
     }
 
@@ -190,6 +190,9 @@ export const updateShippingInfoStatus = async (req, res) => {
   }
 };
 
+/**
+ * @route POST /api/orders/:id/return
+ */
 /**
  * @route POST /api/orders/:id/return
  */
@@ -210,6 +213,14 @@ export const createReturnRequest = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Forbidden: Not the owner of the order",
+      });
+    }
+
+    // Thêm điều kiện kiểm tra nếu status đã là 'RequestReturned' để tránh tạo request trùng lặp
+    if (order.status === "RequestReturned") {
+      return res.status(400).json({
+        success: false,
+        message: "A return request is already in progress for this order.",
       });
     }
 
@@ -264,7 +275,23 @@ export const createReturnRequest = async (req, res) => {
 
     const savedRequest = await newRequest.save();
 
-    return res.status(201).json({ success: ttrue, savedRequest });
+    order.status = "RequestReturned";
+    await order.save();
+
+    await createNotification({
+      targetType: "single",
+      userId: userId,
+      title: "🔄 Return Request Submitted",
+      message: `Your return request for order #${orderId} has been successfully submitted and is now **Pending** review.`,
+      link: `/returns/${savedRequest._id}`,
+      data: {
+        requestId: savedRequest._id,
+        orderId: orderId,
+        status: "pending",
+      },
+    });
+
+    return res.status(201).json({ success: true, savedRequest });
   } catch (error) {
     return handleServerError(res, error);
   }
@@ -301,18 +328,26 @@ export const updateReturnRequestStatus = async (req, res) => {
       let title = "🔄 Return Request Update";
       let message = `Your return request #${requestId} for order ${returnRequest.orderId._id} has been updated to: **${status}**`;
 
-      if (status === "approved") {
-        title = "🎉 Return Request Approved!";
-        message = `Your return request for order #${returnRequest.orderId._id} has been **APPROVED**. Please follow the return instructions.`;
-      } else if (status === "rejected") {
-        title = "😔 Return Request Rejected";
-        message = `Your return request for order #${returnRequest.orderId._id} has been **REJECTED**. Contact support for details.`;
-      } else if (status === "completed") {
-        title = "✅ Return Process Completed";
-        message = `The return process for order #${returnRequest.orderId._id} is **COMPLETED** (refund processed).`;
+      const order = returnRequest.orderId;
 
-        returnRequest.orderId.status = "Returned";
-        await returnRequest.orderId.save();
+      if (status === "approved" || status === "completed") {
+        order.status = "Returned";
+        await order.save();
+
+        if (status === "approved") {
+          title = "🎉 Return Request Approved!";
+          message = `Your return request for order #${order._id} has been **APPROVED**. Please follow the return instructions. The order status has been updated to **Returned**.`;
+        } else {
+          title = "✅ Return Process Completed";
+          message = `The return process for order #${order._id} is **COMPLETED** (refund processed). The order status is now **Returned**.`;
+        }
+      } else if (status === "rejected") {
+        if (order.status !== "Delivered") {
+          order.status = "Delivered";
+          await order.save();
+        }
+        title = "😔 Return Request Rejected";
+        message = `Your return request for order #${order._id} has been **REJECTED**. Contact support for details. The order status has been reset to **Delivered**.`;
       }
 
       await createNotification({
@@ -336,28 +371,141 @@ export const updateReturnRequestStatus = async (req, res) => {
  */
 export const getOrderDetails = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id)
-      .populate("buyerId", "fullname email role")
-      .populate("addressId")
-      .populate("items.productId", "name price imageURL");
+    const { id } = req.params;
+
+    const order = await Order.findById(id)
+      .populate({
+        path: "buyerId",
+        select: "email fullname role",
+      })
+      .populate({
+        path: "addressId",
+        select: "fullname phone street city state country isDefault",
+      })
+      .populate({
+        path: "items.productId",
+        select: "title description price images categoryId sellerId",
+        populate: {
+          path: "sellerId",
+          select: "fullname email",
+        },
+      })
+      .lean();
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
-    const isOwner = order.buyerId._id.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === "admin";
-
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({
+      return res.status(404).json({
         success: false,
-        message: "Forbidden: You do not have access to this order",
+        message: "Order not found",
       });
     }
 
-    const shippingInfo = await ShippingInfo.findOne({ orderId: order._id });
+    const shippingInfo = await ShippingInfo.findOne({
+      orderId: id,
+    }).lean();
 
-    return res.status(200).json({ success: true, order, shippingInfo });
+    return res.status(200).json({
+      success: true,
+      order,
+      shippingInfo,
+    });
+  } catch (error) {
+    console.error("Get order details error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+/**
+ * @route GET /api/orders/my
+ */
+export const getUserOrder = async (req, res) => {
+  try {
+    const buyerId = req.user.id;
+
+    const orders = await Order.find({ buyerId })
+      .populate("addressId")
+      .populate({
+        path: "items.productId",
+        select: "title price images",
+      })
+      .sort({ orderDate: -1 })
+      .lean();
+
+    if (orders.length === 0) {
+      return res.status(200).json({ success: true, orders: [] });
+    }
+
+    const orderIds = orders.map((order) => order._id);
+    const shippingInfos = await ShippingInfo.find({
+      orderId: { $in: orderIds },
+    }).lean();
+
+    const ordersWithDetails = orders.map((order) => {
+      const shippingInfo = shippingInfos.find(
+        (info) => info.orderId.toString() === order._id.toString()
+      );
+
+      return {
+        ...order,
+        shippingInfo: shippingInfo || null,
+      };
+    });
+
+    return res.status(200).json({ success: true, orders: ordersWithDetails });
+  } catch (error) {
+    return handleServerError(res, error);
+  }
+};
+
+/**
+ * @route PUT /api/orders/:id/cancel
+ * Cho phép người dùng (buyer) hủy đơn hàng
+ */
+export const cancelOrder = async (req, res) => {
+  const userId = req.user.id;
+  const orderId = req.params.id;
+
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+    if (order.buyerId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: Not the owner of the order",
+      });
+    }
+
+    if (order.status !== "Pending" && order.status !== "Processing") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel order. Current status is **${order.status}**.`,
+      });
+    }
+
+    order.status = "Canceled";
+    const updatedOrder = await order.save();
+
+    await ShippingInfo.updateOne(
+      { orderId: updatedOrder._id },
+      { $set: { status: "Canceled" } }
+    );
+
+    await createNotification({
+      targetType: "single",
+      userId: userId,
+      title: "❌ Order Canceled",
+      message: `Your order #${updatedOrder._id} has been successfully **Canceled**.`,
+      link: `/order/${updatedOrder._id}`,
+      data: { orderId: updatedOrder._id, status: updatedOrder.status },
+    });
+
+    return res.status(200).json({ success: true, updatedOrder });
   } catch (error) {
     return handleServerError(res, error);
   }

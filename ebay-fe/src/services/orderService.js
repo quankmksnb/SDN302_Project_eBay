@@ -28,14 +28,30 @@ const orderService = {
   },
 
   /**
-   * Tạo yêu cầu trả hàng/hoàn tiền.
    * POST /api/orders/:id/return
    * @param {string} orderId
-   * @param {string} reason
    */
   createReturnRequest: async (orderId, reason) => {
     try {
       const res = await api.post(`/orders/${orderId}/return`, { reason });
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  getUserOrder: async () => {
+    try {
+      const res = await api.get("/orders/my");
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  cancelOrder: async (id) => {
+    try {
+      const res = await api.put(`/orders/${id}/cancel`);
       return res.data;
     } catch (error) {
       throw error.response?.data || error;
