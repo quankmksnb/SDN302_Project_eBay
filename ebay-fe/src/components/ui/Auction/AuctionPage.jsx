@@ -1,59 +1,82 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import bidService from "@/services/bidService";
+import { getUserFromStorage } from "@/lib/utils";
+import AlertModal from "@/components/shared/AlertModal";
 
-// Ẩn tên giống eBay: k***9
+// Ẩn tên nếu muốn thêm layer nữa (optional),
+// nhưng backend đã mask rồi, có thể bỏ.
 function maskName(name) {
   if (!name) return "";
   if (name.length <= 2) return name + "***";
   return name[0] + "***" + name[name.length - 1];
 }
 
-export default function AuctionPage() {
-  // ======= FAKE PRODUCT =======
-  const [product] = useState({
-    _id: "TEST123",
-    title: 'Apple Macbook Air 13.3" Intel Core i3 8GB 256GB SSD 2020 Gold',
-    image:
-      "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/macbook-air-gold-select-201810?wid=2000&hei=2000&fmt=jpeg&qlt=95&.v=1664472289053",
-    shipping: "FREE Expedited Shipping",
-    auctionEndTime: Date.now() + 1000 * 60 * 60 * 10,
-  });
-
-  // ======= FAKE BID HISTORY =======
-  const [bids, setBids] = useState([
-    {
-      _id: "1",
-      username: "k***9",
-      bidAmount: 510,
-      createdAt: new Date("2024-01-15T10:23:00"),
-    },
-    {
-      _id: "2",
-      username: "9***m",
-      bidAmount: 500,
-      createdAt: new Date("2024-01-14T17:12:00"),
-    },
-    {
-      _id: "3",
-      username: "t***p",
-      bidAmount: 430,
-      createdAt: new Date("2024-01-14T16:45:00"),
-    },
-  ]);
-
+export default function AuctionPage({ productId }) {
+  const [product, setProduct] = useState(null); // product info từ backend
+  const [bids, setBids] = useState([]); // bidHistory
   const [bidAmount, setBidAmount] = useState("");
   const [timeLeft, setTimeLeft] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [placing, setPlacing] = useState(false);
+  const [error, setError] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("info"); // success | error | warning | confirm
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
 
-  // Countdown
+  const showModal = (type, title, message) => {
+    setModalType(type);
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalOpen(true);
+  };
+
+  // ===== Load dữ liệu đấu giá theo productId =====
+  const fetchBidData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await bidService.getBidHistoryByProduct(productId);
+      if (!data.success) {
+        setError(data.message || "Không lấy được dữ liệu đấu giá.");
+        return;
+      }
+      setProduct(data.product);
+      setBids(data.bidHistory || []);
+    } catch (err) {
+      console.error(err);
+      setError(
+        err?.response?.data?.message || "Có lỗi xảy ra khi tải dữ liệu đấu giá."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    if (productId) {
+      fetchBidData();
+    }
+  }, [productId]);
+
+  // ===== Countdown theo auctionEndTime =====
+  useEffect(() => {
+    if (!product?.auctionEndTime) return;
+
+    const endTime = new Date(product.auctionEndTime).getTime();
+
     const timer = setInterval(() => {
-      const diff = product.auctionEndTime - Date.now();
+      const now = Date.now();
+      const diff = endTime - now;
+
       if (diff <= 0) {
         setTimeLeft("Auction ended");
         clearInterval(timer);
         return;
       }
+
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
@@ -61,28 +84,63 @@ export default function AuctionPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [product?.auctionEndTime]);
 
-  const handlePlaceBid = () => {
-    if (!bidAmount) return alert("Please enter your bid.");
+  // ===== Handler đặt bid =====
+  const handlePlaceBid = async () => {
+    const user = getUserFromStorage(localStorage, sessionStorage);
+    if (!user) {
+      showModal("error", "Login required", "Please login to place a bid.");
+
+      return;
+    }
+
+    const buyerId = user.id || user._id;
     const amount = Number(bidAmount);
-    const highest = bids[0].bidAmount;
 
-    if (amount <= highest)
-      return alert("Your bid must be higher than the current bid.");
+    if (!amount || amount <= 0) {
+      showModal("warning", "Invalid bid", "Please enter a valid bid amount.");
 
-    const newBid = {
-      _id: Date.now().toString(),
-      username: "y***u",
-      bidAmount: amount,
-      createdAt: new Date(),
-    };
+      return;
+    }
 
-    setBids([newBid, ...bids]);
-    setBidAmount("");
+    try {
+      setPlacing(true);
+      await bidService.placeBid(product.id, amount, buyerId);
+      setBidAmount("");
+
+      await fetchBidData(); // load lại lịch sử
+    } catch (err) {
+      showModal(
+        "error",
+        "Bid failed",
+        err.response?.data?.message ||
+          "An error occurred while placing your bid."
+      );
+    } finally {
+      setPlacing(false);
+    }
   };
 
-  const highestBid = bids.length ? bids[0].bidAmount : 0;
+  const startPrice = product?.startingPrice;
+
+  const highestBid = product?.price || (bids.length ? bids[0].bidAmount : 0);
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto py-12 px-6 text-lg">
+        Đang tải dữ liệu đấu giá...
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="max-w-6xl mx-auto py-12 px-6 text-lg text-red-600">
+        {error || "Không tìm thấy dữ liệu đấu giá cho sản phẩm này."}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-6 font-sans text-[17px]">
@@ -92,18 +150,27 @@ export default function AuctionPage() {
       {/* PRODUCT CARD */}
       <div className="border p-6 rounded-xl bg-white shadow-lg">
         <div className="flex gap-8">
-          <img
-            src={product.image}
-            alt="item"
-            className="w-40 h-40 object-contain rounded-lg border"
-          />
+          {product.image && (
+            <img
+              src={product.image}
+              alt={product.title}
+              className="w-40 h-40 object-contain rounded-lg border"
+            />
+          )}
 
           <div className="flex-1">
             <h2 className="font-semibold text-2xl mb-2">{product.title}</h2>
 
             <p className="text-gray-700 text-lg">
+              <strong>Starting bid:</strong>{" "}
+              <span className="text-2xl font-bold text-gray-900">
+                ${startPrice.toLocaleString()}
+              </span>
+            </p>
+
+            <p className="text-gray-700 text-lg">
               <strong>Current bid:</strong>{" "}
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-2xl font-bold text-gray-900">
                 ${highestBid.toLocaleString()}
               </span>
             </p>
@@ -113,7 +180,7 @@ export default function AuctionPage() {
             </p>
 
             <p className="text-gray-700 mt-2 text-lg">
-              <strong>Bids:</strong> {bids.length}
+              <strong>Bids:</strong> {product.totalBids}
             </p>
 
             <p className="text-gray-700 mt-2 text-lg">
@@ -128,15 +195,18 @@ export default function AuctionPage() {
           <input
             type="number"
             className="border rounded-lg px-4 py-3 w-72 text-lg"
-            placeholder={`Enter $${highestBid + 1} or more`}
+            placeholder={`Enter $${
+              highestBid + (product.minIncrement || 1)
+            } or more`}
             value={bidAmount}
             onChange={(e) => setBidAmount(e.target.value)}
           />
           <button
             onClick={handlePlaceBid}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition"
+            disabled={placing}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-60"
           >
-            Place bid
+            {placing ? "Placing..." : "Place bid"}
           </button>
         </div>
       </div>
@@ -157,13 +227,14 @@ export default function AuctionPage() {
 
             <tbody>
               {bids.map((b) => (
-                <tr key={b._id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 font-medium">{maskName(b.username)}</td>
+                <tr key={b.bidId} className="border-b hover:bg-gray-50">
+                  {/* backend đã mask rồi => b.bidderName */}
+                  <td className="p-4 font-medium">{b.bidderName}</td>
                   <td className="p-4 font-semibold text-gray-900">
                     ${b.bidAmount.toLocaleString()}
                   </td>
                   <td className="p-4 text-gray-700">
-                    {new Date(b.createdAt).toLocaleString()}
+                    {new Date(b.bidTime).toLocaleString()}
                   </td>
                 </tr>
               ))}
@@ -177,6 +248,13 @@ export default function AuctionPage() {
           )}
         </div>
       </div>
+      <AlertModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        type={modalType}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </div>
   );
 }

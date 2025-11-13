@@ -1,28 +1,32 @@
 import api from "@/services";
 
 /**
- * Lấy danh sách BID theo productId
- * GET /api/bids/product/:productId
+ * Lấy lịch sử bid + thông tin sản phẩm đấu giá
+ * GET /api/bid/:productId/historyBid
  */
-export const getBidsByProduct = async (productId) => {
+export const getBidHistoryByProduct = async (productId) => {
   try {
-    const res = await api.get(`/bids/product/${productId}`);
-    return res.data.bids;
+    const res = await api.get(`/bid/${productId}/historyBid`);
+    // res.data = { success, product, bidHistory }
+    return res.data;
   } catch (error) {
-    console.error("Error fetching bids:", error);
+    console.error("Error fetching bid history:", error);
     throw error;
   }
 };
 
 /**
- * Đặt bid
- * POST /api/bids/place
+ * Đặt bid cho 1 sản phẩm
+ * POST /api/bid/:productId/bid
+ * body: { bidAmount, maxAutoBid? }
+ * (buyerId lấy từ req.user trong backend, như em chỉnh ở trên)
  */
-export const placeBid = async (productId, bidAmount) => {
+export const placeBid = async (productId, bidAmount, buyerId, maxAutoBid) => {
   try {
-    const res = await api.post(`/bids/place`, {
-      productId,
+    const res = await api.post(`/bid/${productId}/bid`, {
       bidAmount,
+      buyerId,
+      maxAutoBid,
     });
     return res.data;
   } catch (error) {
@@ -31,24 +35,10 @@ export const placeBid = async (productId, bidAmount) => {
   }
 };
 
-/**
- * Lấy bid cao nhất của 1 sản phẩm (optional)
- * GET /api/bids/highest/:productId
- */
-export const getHighestBid = async (productId) => {
-  try {
-    const res = await api.get(`/bids/highest/${productId}`);
-    return res.data.highestBid;
-  } catch (error) {
-    console.error("Error fetching highest bid:", error);
-    throw error;
-  }
-};
 
 const bidService = {
-  getBidsByProduct,
+  getBidHistoryByProduct,
   placeBid,
-  getHighestBid,
 };
 
 export default bidService;

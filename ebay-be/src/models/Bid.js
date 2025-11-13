@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import Product from "./Product.js";
+import User from "./User.js";
 const { Schema } = mongoose;
 
 const bidSchema = new Schema({
