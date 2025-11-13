@@ -77,7 +77,7 @@ const Cart = () => {
     }
   };
   const hanldeNavigate = () => {
-    const user = getUserFromStorage();
+    const user = getUserFromStorage(localStorage, sessionStorage);
     if (!user) return router.push("/login");
     router.push("/checkout");
   };

@@ -1,3 +1,4 @@
+"use client";
 import { SHIPPING_TOTAL_USD, USD_TO_VND_RATE } from "@/lib/constants";
 import React, { useState, useEffect } from "react";
 import cartService from "@/services/cartService";
@@ -5,9 +6,10 @@ import { getAddresses } from "@/services/addressService";
 import ShipTo from "@/components/ui/CheckOut/ShipTo";
 import { useRouter } from "next/navigation";
 import { getUserFromStorage } from "@/lib/utils";
+import Loading from "@/components/shared/Loading";
 
 const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
-  const user = getUserFromStorage();
+  const [user, setUser] = useState(null);
   const cartItems = cart.items || [];
   const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
@@ -35,6 +37,15 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
   useEffect(() => {
     fetchAddresses();
   }, []);
+
+  useEffect(() => {
+    const storedUser = getUserFromStorage(localStorage, sessionStorage);
+    setUser(storedUser);
+  }, []);
+
+  if (!user) {
+    return <Loading />;
+  }
 
   const baseSubtotalUSD = parseFloat(cart.subtotal) || 0;
   const baseDiscountUSD = parseFloat(cart.discountTotal) || 0.0;
@@ -420,7 +431,12 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
               </div>
               <div className="flex justify-between text-green-600">
                 <span>Discount </span>
-                <span>-US ${currentDiscountUSD.toFixed(2)}</span>
+                <span>
+                  {" "}
+                  {currentDiscountUSD > 0
+                    ? `-US ${currentDiscountUSD.toFixed(2)}`
+                    : "-"}
+                </span>
               </div>
               <hr className="my-3 border-gray-300" />
               <div className="flex justify-between font-semibold text-[17px]">
