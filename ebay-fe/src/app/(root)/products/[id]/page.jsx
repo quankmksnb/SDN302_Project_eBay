@@ -10,10 +10,8 @@ import { toast } from "react-hot-toast";
 import cartService from "@/services/cartService";
 import AddedToCartPopup from "@/components/ui/AddToCartStatus/AddToCartStatus";
 import { useRouter } from "next/navigation";
-import AuctionPage from "@/components/ui/Auction/AuctionPage";
 
 export default function ProductDetail() {
-  const router = useRouter();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -23,32 +21,57 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [showPopup, setShowPopup] = useState(false);
   const [relatedItems, setRelatedItems] = useState([]);
+  const [timeLeft, setTimeLeft] = useState("");
+  const router = useRouter();
+  // Countdown timer effect
+  useEffect(() => {
+    if (!product?.isAuction || !product?.auctionEndTime) return;
+
+    const calculateTimeLeft = () => {
+      const endTime = new Date(product.auctionEndTime).getTime();
+      const now = new Date().getTime();
+      const difference = endTime - now;
+
+      if (difference <= 0) {
+        setTimeLeft("Auction ended");
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeLeft(`${days}d ${hours}h ${minutes}m`);
+      } else {
+        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [product]);
 
   const handleAddToCart = async () => {
     if (!product) return;
     try {
-      // Gọi API thêm sản phẩm vào giỏ
       await cartService.addToCart(product, quantity);
       toast.success("Added to cart successfully!");
       window.dispatchEvent(new Event("cart_updated"));
 
-      // === 🔹 Gọi API lấy tất cả sản phẩm cùng categoryId ===
       if (product.categoryId) {
         try {
-          // đảm bảo categoryId là string
           const categoryId =
             typeof product.categoryId === "object"
               ? product.categoryId._id
               : product.categoryId;
 
           const response = await getProductsByCategory(categoryId);
-
-          // Backend nên trả về { products: [...] }
           const related = response.products || response;
-
-          // Loại bỏ chính sản phẩm hiện tại (tránh trùng)
           const filteredRelated = related.filter((p) => p._id !== product._id);
-
           setRelatedItems(filteredRelated);
         } catch (err) {
           console.error("Error fetching related items:", err);
@@ -127,7 +150,7 @@ export default function ProductDetail() {
           title: product.title,
           price: product.price,
           image: selectedImage || product.image,
-          shipping: 45.15, // hoặc lấy thật từ backend nếu có
+          shipping: 45.15,
         }}
         relatedItems={relatedItems}
       />
@@ -247,11 +270,10 @@ export default function ProductDetail() {
                   {product.images.map((img, i) => (
                     <div
                       key={i}
-                      className={`flex-shrink-0 w-16 h-16 border-2 rounded cursor-pointer hover:border-blue-500 transition ${
-                        selectedImage === img
-                          ? "border-blue-500"
-                          : "border-gray-300"
-                      }`}
+                      className={`flex-shrink-0 w-16 h-16 border-2 rounded cursor-pointer hover:border-blue-500 transition ${selectedImage === img
+                        ? "border-blue-500"
+                        : "border-gray-300"
+                        }`}
                       onClick={() => setSelectedImage(img)}
                     >
                       <img
@@ -404,12 +426,17 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-gray-700 font-semibold w-24">
-                Sale ends in:
-              </span>
-              <span className="text-red-600 font-bold">11h 0m</span>
-            </div>
+            {/* Countdown timer - chỉ hiện khi isAuction = true */}
+            {product.isAuction && (
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-gray-700 font-semibold w-24">
+                  {timeLeft === "Auction ended" ? "Auction:" : "Time left:"}
+                </span>
+                <span className={`font-bold ${timeLeft === "Auction ended" ? "text-gray-600" : "text-red-600"}`}>
+                  {timeLeft}
+                </span>
+              </div>
+            )}
 
             <div className="flex items-center gap-3 mb-6">
               <span className="text-gray-700 font-semibold w-24">
@@ -462,7 +489,6 @@ export default function ProductDetail() {
 
             {/* ACTION BUTTONS */}
             <div className="space-y-3 mb-6">
-              {/* Nếu là AUCTION → Place bid */}
               {product.isAuction ? (
                 <button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full text-lg transition"
@@ -471,13 +497,11 @@ export default function ProductDetail() {
                   Place bid
                 </button>
               ) : (
-                /* Nếu không phải auction → Buy It Now */
                 <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full text-lg transition">
                   Buy It Now
                 </button>
               )}
 
-              {/* Add to cart CHỈ xuất hiện nếu KHÔNG phải đấu giá */}
               {!product.isAuction && (
                 <button
                   onClick={handleAddToCart}
@@ -528,31 +552,28 @@ export default function ProductDetail() {
           <div className="flex border-b border-gray-300 mb-6">
             <button
               onClick={() => setActiveTab("description")}
-              className={`px-6 py-3 text-base font-semibold ${
-                activeTab === "description"
-                  ? "border-b-2 border-gray-900 text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-6 py-3 text-base font-semibold ${activeTab === "description"
+                ? "border-b-2 border-gray-900 text-gray-900"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Item description
             </button>
             <button
               onClick={() => setActiveTab("shipping")}
-              className={`px-6 py-3 text-base font-semibold ${
-                activeTab === "shipping"
-                  ? "border-b-2 border-gray-900 text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-6 py-3 text-base font-semibold ${activeTab === "shipping"
+                ? "border-b-2 border-gray-900 text-gray-900"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Shipping and payments
             </button>
             <button
               onClick={() => setActiveTab("reviews")}
-              className={`px-6 py-3 text-base font-semibold ${
-                activeTab === "reviews"
-                  ? "border-b-2 border-gray-900 text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-6 py-3 text-base font-semibold ${activeTab === "reviews"
+                ? "border-b-2 border-gray-900 text-gray-900"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Reviews ({reviews.length})
             </button>
@@ -614,11 +635,10 @@ export default function ProductDetail() {
                   {reviews.map((r, index) => (
                     <li
                       key={r._id}
-                      className={`pb-6 ${
-                        index !== reviews.length - 1
-                          ? "border-b border-gray-200"
-                          : ""
-                      }`}
+                      className={`pb-6 ${index !== reviews.length - 1
+                        ? "border-b border-gray-200"
+                        : ""
+                        }`}
                     >
                       <div className="flex items-start gap-4">
                         <img
