@@ -110,6 +110,7 @@ export const getBidHistory = async (req, res) => {
         image: product.images?.[0] || null,
         shipping: product.shipping || "FREE Expedited Shipping", // nếu không có field sẽ fallback text
         auctionEndTime: product.auctionEndTime,
+        price: product.price,
         startingPrice: product.startingPrice,
         minIncrement: product.minIncrement,
         totalBids: bidHistory.length,

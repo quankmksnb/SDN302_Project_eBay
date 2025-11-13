@@ -180,7 +180,7 @@ export default function AuctionPage({ productId }) {
             </p>
 
             <p className="text-gray-700 mt-2 text-lg">
-              <strong>Bids:</strong> {product.totalBids}
+              <strong>Number of bids:</strong> {product.totalBids}
             </p>
 
             <p className="text-gray-700 mt-2 text-lg">
