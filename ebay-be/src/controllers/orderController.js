@@ -52,7 +52,7 @@ export const createOrder = async (req, res) => {
       } is being processed. Tracking number: ${
         savedShippingInfo.trackingNumber
       }. Estimated arrival: ${estimateArrivalDate.toLocaleDateString()}.`,
-      link: `/orders/${savedOrder._id}`,
+      link: `/order/${savedOrder._id}`,
       data: {
         orderId: savedOrder._id,
         status: savedOrder.status,
@@ -120,7 +120,7 @@ export const updateOrderStatus = async (req, res) => {
         userId: updatedOrder.buyerId,
         title,
         message,
-        link: `/orders/${updatedOrder._id}`,
+        link: `/order/${updatedOrder._id}`,
         data: { orderId: updatedOrder._id, status: updatedOrder.status },
       });
     }
@@ -180,7 +180,7 @@ export const updateShippingInfoStatus = async (req, res) => {
         userId: order.buyerId,
         title,
         message,
-        link: `/orders/${orderId}`,
+        link: `/order/${orderId}`,
       });
     }
 
@@ -501,7 +501,7 @@ export const cancelOrder = async (req, res) => {
       userId: userId,
       title: "❌ Order Canceled",
       message: `Your order #${updatedOrder._id} has been successfully **Canceled**.`,
-      link: `/orders/${updatedOrder._id}`,
+      link: `/order/${updatedOrder._id}`,
       data: { orderId: updatedOrder._id, status: updatedOrder.status },
     });
 
