@@ -27,7 +27,6 @@ const couponSchema = new Schema({
   },
   minOrderValue: { type: Number, default: 0 },
   maxDiscountAmount: { type: Number },
-  assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 export default mongoose.model("Coupon", couponSchema, "coupons");
