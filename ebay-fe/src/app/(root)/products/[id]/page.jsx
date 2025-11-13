@@ -9,6 +9,7 @@ import {
 import { toast } from "react-hot-toast";
 import cartService from "@/services/cartService";
 import AddedToCartPopup from "@/components/ui/AddToCartStatus/AddToCartStatus";
+import { useRouter } from "next/navigation";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -21,7 +22,7 @@ export default function ProductDetail() {
   const [showPopup, setShowPopup] = useState(false);
   const [relatedItems, setRelatedItems] = useState([]);
   const [timeLeft, setTimeLeft] = useState("");
-
+  const router = useRouter();
   // Countdown timer effect
   useEffect(() => {
     if (!product?.isAuction || !product?.auctionEndTime) return;
@@ -269,11 +270,10 @@ export default function ProductDetail() {
                   {product.images.map((img, i) => (
                     <div
                       key={i}
-                      className={`flex-shrink-0 w-16 h-16 border-2 rounded cursor-pointer hover:border-blue-500 transition ${
-                        selectedImage === img
-                          ? "border-blue-500"
-                          : "border-gray-300"
-                      }`}
+                      className={`flex-shrink-0 w-16 h-16 border-2 rounded cursor-pointer hover:border-blue-500 transition ${selectedImage === img
+                        ? "border-blue-500"
+                        : "border-gray-300"
+                        }`}
                       onClick={() => setSelectedImage(img)}
                     >
                       <img
@@ -552,31 +552,28 @@ export default function ProductDetail() {
           <div className="flex border-b border-gray-300 mb-6">
             <button
               onClick={() => setActiveTab("description")}
-              className={`px-6 py-3 text-base font-semibold ${
-                activeTab === "description"
-                  ? "border-b-2 border-gray-900 text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-6 py-3 text-base font-semibold ${activeTab === "description"
+                ? "border-b-2 border-gray-900 text-gray-900"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Item description
             </button>
             <button
               onClick={() => setActiveTab("shipping")}
-              className={`px-6 py-3 text-base font-semibold ${
-                activeTab === "shipping"
-                  ? "border-b-2 border-gray-900 text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-6 py-3 text-base font-semibold ${activeTab === "shipping"
+                ? "border-b-2 border-gray-900 text-gray-900"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Shipping and payments
             </button>
             <button
               onClick={() => setActiveTab("reviews")}
-              className={`px-6 py-3 text-base font-semibold ${
-                activeTab === "reviews"
-                  ? "border-b-2 border-gray-900 text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-6 py-3 text-base font-semibold ${activeTab === "reviews"
+                ? "border-b-2 border-gray-900 text-gray-900"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Reviews ({reviews.length})
             </button>
@@ -638,11 +635,10 @@ export default function ProductDetail() {
                   {reviews.map((r, index) => (
                     <li
                       key={r._id}
-                      className={`pb-6 ${
-                        index !== reviews.length - 1
-                          ? "border-b border-gray-200"
-                          : ""
-                      }`}
+                      className={`pb-6 ${index !== reviews.length - 1
+                        ? "border-b border-gray-200"
+                        : ""
+                        }`}
                     >
                       <div className="flex items-start gap-4">
                         <img
