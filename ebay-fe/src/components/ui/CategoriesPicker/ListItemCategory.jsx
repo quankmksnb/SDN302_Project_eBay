@@ -203,6 +203,7 @@
 import Footer2 from "@/components/layout/Footer2";
 import { Footer } from "antd/es/layout/layout";
 import React, { useEffect, useMemo, useState } from "react";
+import AuctionPage from "../Auction/AuctionPage";
 
 const ItemsCategory = () => {
   const [items, setItems] = useState([]);
@@ -417,6 +418,7 @@ const ItemsCategory = () => {
       <div>
         <Footer2 />
       </div>
+      
     </section>
   );
 };

@@ -5,6 +5,7 @@ import { getUserFromStorage } from "@/lib/utils";
 import cartService from "@/services/cartService";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import AuctionPage from "../Auction/AuctionPage";
 
 const QuantityCounter = ({ initialQuantity, onQuantityChange }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -134,7 +135,6 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-white font-[Market Sans,Helvetica Neue,Helvetica,Arial,Roboto,sans-serif] flex flex-col items-center">
-      {/* HEADER */}
       <div className="flex justify-between items-center w-[90%] max-w-[1200px] py-6 border-b border-gray-300">
         <h1 className="text-[28px] font-bold text-gray-900">Shopping cart</h1>
         <a
@@ -143,10 +143,7 @@ const Cart = () => {
         ></a>
       </div>
 
-      {/* MAIN CONTENT */}
       <div className="flex justify-between w-[90%] max-w-[1200px] mt-8 gap-10">
-        {/* LEFT COLUMN */}
-
         {cart.length === 0 ? (
           <div className="flex flex-col w-[68%] space-y-6">
             <span className="italic">There are no products yet.</span>
@@ -274,6 +271,9 @@ const Cart = () => {
             </div>
           )}
         </div>
+      </div>
+      <div>
+        <AuctionPage />
       </div>
     </div>
   );
