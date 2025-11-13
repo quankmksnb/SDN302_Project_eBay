@@ -187,7 +187,7 @@ export default function Header() {
                               Change password
                             </button>
                             <Link
-                              href="/order/history"
+                              href="/order"
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                             >
                               Order history

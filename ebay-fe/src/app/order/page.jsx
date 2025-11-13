@@ -1,5 +1,5 @@
 "use client";
-import HistoryProductDetail from "@/components/ui/HistoryProductDetail/HistoryProductDetail";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 const STATUS_OPTIONS = [
@@ -132,29 +132,30 @@ const purchases = [
   },
 ];
 
-export default function PurchaseHistory() {
+export default function OrderHistory() {
   const [selectedStatus, setSelectedStatus] = useState("All");
-
+  const router = useRouter();
   const filtered =
     selectedStatus === "All"
       ? purchases
       : purchases.filter((p) => p.status === selectedStatus);
 
   return (
-    <div className="bg-white min-h-screen px-10 py-8">
-      <h1 className="text-3xl font-semibold text-gray-800 mb-8">
-        My eBay – Purchase History
-      </h1>
+    <div className="max-w-[1488px] mx-auto px-4">
+      <div className="bg-white min-h-screen py-8">
+        <h1 className="text-3xl font-semibold text-gray-800 mb-8">
+          My eBay – Purchase History
+        </h1>
 
-      {/* ===========================
+        {/* ===========================
           STATUS TABS LIKE EBAY
       ============================ */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-3 mb-10">
-        {STATUS_OPTIONS.map((status) => (
-          <button
-            key={status}
-            onClick={() => setSelectedStatus(status)}
-            className={`
+        <div className="flex items-center gap-3 overflow-x-auto pb-3 mb-10">
+          {STATUS_OPTIONS.map((status) => (
+            <button
+              key={status}
+              onClick={() => setSelectedStatus(status)}
+              className={`
               whitespace-nowrap px-5 py-2 rounded-full text-sm border transition-all
               ${
                 selectedStatus === status
@@ -162,72 +163,72 @@ export default function PurchaseHistory() {
                   : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
               }
             `}
-          >
-            {status}
-          </button>
-        ))}
-      </div>
+            >
+              {status}
+            </button>
+          ))}
+        </div>
 
-      {/* ===========================
+        {/* ===========================
           ORDER LIST
       ============================ */}
-      <div className="space-y-10">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-2xl shadow p-6 hover:shadow-md transition"
-          >
-            <div className="flex justify-between mb-4">
-              <div>
-                <p className="font-semibold text-gray-800">{item.shop}</p>
-                <p className="text-gray-500 text-sm">{item.feedback}</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row justify-between gap-6">
-              <div className="flex gap-5">
-                <img
-                  src={item.image}
-                  className="w-28 h-28 rounded-lg object-cover"
-                />
+        <div className="space-y-10">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-2xl shadow p-6 hover:shadow-md transition"
+              onClick={() => router.push("/order/1")}
+            >
+              <div className="flex justify-between mb-4">
                 <div>
-                  <p className="text-sm bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full w-fit mb-1">
-                    {item.status}
-                  </p>
-                  <p className="font-medium text-black">{item.name}</p>
-                  <p className="text-sm text-gray-500">{item.variant}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Order ID: {item.id}
-                  </p>
+                  <p className="font-semibold text-gray-800">{item.shop}</p>
+                  <p className="text-gray-500 text-sm">{item.feedback}</p>
                 </div>
               </div>
 
-              {/* PRICE AREA */}
-              <div className="text-right">
-                <p className="font-semibold text-black text-lg">
-                  US ${item.usd.toFixed(2)}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  ({formatNum(item.vnd)} VND)
-                </p>
-                <p className="text-gray-500 text-xs mt-1">
-                  + US ${item.shippingUSD.toFixed(2)} shipping (
-                  {formatNum(item.shippingVND)} VND)
-                </p>
-                <p className="text-gray-500 text-xs mt-1">Qty: {item.qty}</p>
+              <div className="flex flex-col md:flex-row justify-between gap-6">
+                <div className="flex gap-5">
+                  <img
+                    src={item.image}
+                    className="w-28 h-28 rounded-lg object-cover"
+                  />
+                  <div>
+                    <p className="text-sm bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full w-fit mb-1">
+                      {item.status}
+                    </p>
+                    <p className="font-medium text-black">{item.name}</p>
+                    <p className="text-sm text-gray-500">{item.variant}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Order ID: {item.id}
+                    </p>
+                  </div>
+                </div>
+
+                {/* PRICE AREA */}
+                <div className="text-right">
+                  <p className="font-semibold text-black text-lg">
+                    US ${item.usd.toFixed(2)}
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                    ({formatNum(item.vnd)} VND)
+                  </p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    + US ${item.shippingUSD.toFixed(2)} shipping (
+                    {formatNum(item.shippingVND)} VND)
+                  </p>
+                  <p className="text-gray-500 text-xs mt-1">Qty: {item.qty}</p>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div className="flex justify-end gap-6 mt-4 text-blue-600 text-sm">
+                <button className="hover:underline">Request a return</button>
+                <button className="hover:underline">Remove</button>
               </div>
             </div>
-
-            {/* ACTION BUTTONS */}
-            <div className="flex justify-end gap-6 mt-4 text-blue-600 text-sm">
-              <button className="hover:underline">Request a return</button>
-              <button className="hover:underline">Remove</button>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-
-      <HistoryProductDetail />
     </div>
   );
 }
