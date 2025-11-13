@@ -18,7 +18,6 @@ import reviewRoutes from "./routes/reviewRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import bidRoutes from "./routes/BidRoutes.js";
-import bidRoutes from "./routes/BidRoutes.js"
 connectDB();
 
 const hostname = process.env.HOST_NAME || "localhost";
