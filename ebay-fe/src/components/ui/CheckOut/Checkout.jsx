@@ -1,4 +1,5 @@
 "use client";
+
 import { SHIPPING_TOTAL_USD, USD_TO_VND_RATE } from "@/lib/constants";
 import React, { useState, useEffect } from "react";
 import cartService from "@/services/cartService";
@@ -10,23 +11,36 @@ import { getUserFromStorage } from "@/lib/utils";
 import Loading from "@/components/shared/Loading";
 import useModal from "../../../../hooks/useModal";
 import AlertModal from "@/components/shared/AlertModal";
+import FakePayPalModal from "./FakePayPalModal";
+
+// IMPORT FAKE PAYPAL MODAL
 
 const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
   const [user, setUser] = useState(null);
-  const cartItems = cart.items || [];
   const router = useRouter();
+
   const [couponCode, setCouponCode] = useState("");
-  const totalItemsCount = cart.totalItems || 0;
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const [appliedCouponData, setAppliedCouponData] = useState(null);
+
+  const cartItems = cart.items || [];
+  const totalItemsCount = cart.totalItems || 0;
 
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const [paymentMethod, setPaymentMethod] = useState("PAYPAL");
+
+  // PayPal Modal
+  const [isPayPalModalOpen, setPayPalModalOpen] = useState(false);
+
+  // Modal system
   const { isOpen, modalContent, showModal, hideModal, handleConfirm } =
     useModal();
 
+  // ===== FETCH ADDRESSES =====
   const fetchAddresses = async () => {
     try {
       const data = await getAddresses();
@@ -54,8 +68,9 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
     return <Loading />;
   }
 
+  // ===== PRICE CALCULATION =====
   const baseSubtotalUSD = parseFloat(cart.subtotal) || 0;
-  const baseDiscountUSD = parseFloat(cart.discountTotal) || 0.0;
+  const baseDiscountUSD = parseFloat(cart.discountTotal) || 0;
   const shippingUSD = SHIPPING_TOTAL_USD;
 
   const currentSubtotalUSD = appliedCouponData
@@ -73,7 +88,7 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
     (addr) => addr._id === selectedAddressId
   );
 
-  // handlers
+  // ========== CART ACTIONS ==========
   const handleRemoveItem = async (productId) => {
     showModal({
       title: "Remove Item",
@@ -82,14 +97,12 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
       onConfirm: async () => {
         try {
           await cartService.removeFromCart(productId);
-          if (onCartUpdate) {
-            onCartUpdate();
-          }
+          onCartUpdate && onCartUpdate();
         } catch (error) {
-          console.error("Error removing item from cart:", error);
+          console.error("Error removing item:", error);
           showModal({
             title: "Error",
-            message: "Failed to remove item from cart",
+            message: "Failed to remove item.",
             type: "error",
           });
         }
@@ -98,154 +111,110 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
   };
 
   const handleUpdateQuantity = async (productId, currentQuantity, type) => {
-    let newQuantity = currentQuantity;
-    if (type === "increment") {
-      newQuantity += 1;
-    } else if (type === "decrement") {
-      newQuantity -= 1;
-    }
+    let newQuantity =
+      type === "increment" ? currentQuantity + 1 : currentQuantity - 1;
 
-    if (newQuantity < 1) {
-      handleRemoveItem(productId);
-      return;
-    }
+    if (newQuantity < 1) return handleRemoveItem(productId);
 
     try {
       await cartService.updateCartItem(productId, newQuantity);
-
-      if (onCartUpdate) {
-        onCartUpdate();
-      }
+      onCartUpdate && onCartUpdate();
     } catch (error) {
-      console.error("Error updating cart item quantity:", error);
+      console.error("Error updating quantity:", error);
       showModal({
         title: "Error",
-        message: "Failed to update item quantity",
+        message: "Failed to update quantity.",
         type: "error",
       });
     }
   };
 
+  // ===== COUPON =====
   const handleApplyCoupon = async (code) => {
-    if (!code) {
-      showModal({
+    if (!code)
+      return showModal({
         title: "Invalid Coupon",
-        message: "Please enter a coupon code.",
+        message: "Enter coupon code first.",
         type: "warning",
       });
-      return;
-    }
+
     try {
       const data = await cartService.applyCoupon(code);
+
       setAppliedCouponData({
         discountAmount: data.discountAmount,
         cartTotal: data.cartTotal,
       });
-      if (onCartUpdate) {
-        onCartUpdate();
-      }
+
+      onCartUpdate && onCartUpdate();
       setCouponCode("");
+
       showModal({
         title: "Success",
-        message: data.message || `Coupon "${code}" applied successfully!`,
+        message: data.message || `Coupon "${code}" applied.`,
         type: "success",
       });
     } catch (error) {
-      console.error("Error applying coupon:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to apply coupon. Please check the code.";
+      const errMsg = error.response?.data?.message || "Failed to apply coupon.";
+
       showModal({
         title: "Error",
-        message: errorMessage,
+        message: errMsg,
         type: "error",
       });
     }
   };
 
-  const handlePaymentSuccess = async () => {
-    if (!isAddressSelected) {
-      showModal({
-        title: "Address Required",
-        message: "Please select a shipping address before confirming payment.",
-        type: "warning",
-      });
-      return;
-    }
+  // ============== ORDER CREATION COMMON FUNCTION ==============
+  const buildOrderPayload = () => {
+    const orderItems = cartItems.flatMap((group) =>
+      group.products.map((item) => ({
+        productId: item._id,
+        quantity: item.quantity,
+        unitPrice: item.price,
+      }))
+    );
 
-    if (cartItems.length === 0) {
-      showModal({
-        title: "Empty Cart",
-        message: "Your cart is empty. Cannot create an order.",
-        type: "warning",
-      });
-      return;
-    }
+    return {
+      buyerId: user.id,
+      addressId: selectedAddressId,
+      items: orderItems,
+      totalPrice: parseFloat(currentTotalUSD.toFixed(2)),
+      couponCodeApplied: appliedCouponData ? cart.couponCode : null,
+      shippingCost: SHIPPING_TOTAL_USD,
+      discountAmount: parseFloat(currentDiscountUSD.toFixed(2)),
+      paymentMethod,
+    };
+  };
 
-    if (isProcessing) {
-      return;
-    }
+  // ========== COD PAYMENT ==========
+  const handleCOD = async () => {
+    if (!validateBeforePay()) return;
 
     setIsProcessing(true);
 
     try {
-      const orderItems = cartItems.flatMap((group) =>
-        group.products.map((item) => ({
-          productId: item._id,
-          quantity: item.quantity,
-          unitPrice: item.price,
-        }))
-      );
-
-      const orderPayload = {
-        buyerId: user.id,
-        addressId: selectedAddressId,
-        totalPrice: parseFloat(currentTotalUSD.toFixed(2)),
-        status: "Paid",
-        items: orderItems,
-        couponCodeApplied: appliedCouponData ? cart.couponCode : null,
-        shippingCost: SHIPPING_TOTAL_USD,
-        discountAmount: parseFloat(currentDiscountUSD.toFixed(2)),
+      const payload = {
+        ...buildOrderPayload(),
+        paymentStatus: "UNPAID",
+        orderStatus: "PENDING",
       };
 
-      console.log("=========================================");
-      console.log("✅ Creating order with payload:");
-      console.log(orderPayload);
-      console.log("=========================================");
-
-      const response = await orderService.createOrder(orderPayload);
-
-      console.log("Order created successfully:", response);
-      const clearCartResponse = await cartService.clearCart();
-      console.log("Clear cart successfully:", clearCartResponse);
-      if (onCartUpdate) {
-        onCartUpdate();
-      }
-
-      const orderId = response.order?._id || response.orderId || response._id;
+      const res = await orderService.createOrder(payload);
+      await cartService.clearCart();
 
       showModal({
         title: "Order Created",
-        message: "Your order has been created successfully!",
+        message: "Your COD order has been created successfully!",
         type: "success",
         onConfirm: () => {
-          if (orderId) {
-            router.push(`/order/${orderId}`);
-          } else {
-            router.push("/orders");
-          }
+          router.push(`/order/${res.order?._id}`);
         },
       });
-    } catch (error) {
-      console.error("Order creation failed:", error);
-      const errorMessage =
-        error.message ||
-        error.response?.data?.message ||
-        "Failed to create order. Please try again.";
+    } catch (err) {
       showModal({
         title: "Order Failed",
-        message: `Order creation failed: ${errorMessage}`,
+        message: "Could not create COD order.",
         type: "error",
       });
     } finally {
@@ -253,18 +222,121 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
     }
   };
 
+  // ========== PAYPAL (FAKE) ==========
+  const handleFakePayPalSuccess = async () => {
+    setPayPalModalOpen(false);
+
+    setIsProcessing(true);
+    try {
+      const payload = {
+        ...buildOrderPayload(),
+        paymentMethod: "PAYPAL",
+        paymentStatus: "PAID",
+        orderStatus: "PENDING",
+      };
+
+      const res = await orderService.createOrder(payload);
+      await cartService.clearCart();
+
+      showModal({
+        title: "Payment Successful",
+        message: "Your PayPal payment was successful and order created!",
+        type: "success",
+        onConfirm: () => {
+          router.push(`/order/${res.order?._id}`);
+        },
+      });
+    } catch (err) {
+      showModal({
+        title: "Payment Error",
+        message: "Could not finalize PayPal payment.",
+        type: "error",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleFakePayPalFail = () => {
+    setPayPalModalOpen(false);
+    showModal({
+      title: "Payment Failed",
+      message: "Demo: PayPal payment did NOT complete.",
+      type: "error",
+    });
+  };
+
+  // ========== MAIN PAYMENT LOGIC ==========
+  const validateBeforePay = () => {
+    if (!isAddressSelected) {
+      showModal({
+        title: "Address Required",
+        message: "Please select a shipping address.",
+        type: "warning",
+      });
+      return false;
+    }
+
+    if (cartItems.length === 0) {
+      showModal({
+        title: "Empty Cart",
+        message: "Your cart is empty.",
+        type: "warning",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handlePayment = () => {
+    if (!validateBeforePay()) return;
+
+    if (paymentMethod === "COD") {
+      return handleCOD();
+    }
+
+    if (paymentMethod === "PAYPAL") {
+      return setPayPalModalOpen(true);
+    }
+
+    showModal({
+      title: "Not Supported",
+      message: "This payment method is UI only.",
+      type: "warning",
+    });
+  };
+
+  // =============================================================
+  // ======================= UI RENDER ============================
+  // =============================================================
+
   return (
     <>
+      {/* MODALS */}
       <AlertModal
         open={isOpen}
-        onClose={hideModal}
+        onClose={() => {
+          if (modalContent.type !== "confirm" && modalContent.onConfirm) {
+            modalContent.onConfirm();
+          }
+          hideModal();
+        }}
         title={modalContent.title}
         message={modalContent.message}
         type={modalContent.type}
         onConfirm={handleConfirm}
       />
 
-      <div className="bg-white min-h-screen text-[#111820] font-[Market Sans,Helvetica Neue,Helvetica,Arial,Roboto,sans-serif] flex flex-col items-center">
+      <FakePayPalModal
+        open={isPayPalModalOpen}
+        onClose={() => setPayPalModalOpen(false)}
+        onSuccess={handleFakePayPalSuccess}
+        onFail={handleFakePayPalFail}
+      />
+
+      {/* PAGE LAYOUT */}
+      <div className="bg-white min-h-screen text-[#111820] flex flex-col items-center">
         <div className="flex justify-between items-center w-[90%] max-w-[1200px] py-6 border-b border-gray-200">
           <div
             className="flex items-center gap-2 cursor-pointer"
@@ -272,58 +344,55 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
           >
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/1/1b/EBay_logo.svg"
-              alt="eBay"
               className="h-8"
             />
             <h1 className="text-2xl font-semibold">Checkout</h1>
           </div>
-          <p className="text-sm text-gray-500"></p>
         </div>
 
-        {/* ==== MAIN CONTENT ==== */}
         <div className="flex justify-between w-[90%] max-w-[1200px] mt-10 gap-10">
-          {/* ==== LEFT SIDE ==== */}
+          {/* LEFT SIDE ========================================= */}
           <div className="flex flex-col w-[68%] space-y-12">
+            {/* PAYMENT METHODS */}
             <section>
               <h2 className="text-[20px] font-semibold mb-5">Pay with</h2>
               <div className="space-y-4">
                 {[
                   {
-                    label: "PayPal",
+                    label: "PayPal (Demo)",
+                    value: "PAYPAL",
                     icon: "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
                   },
                   {
-                    label: "Add new card",
+                    label: "Cash on Delivery (COD)",
+                    value: "COD",
+                    icon: "https://cdn-icons-png.flaticon.com/512/1040/1040227.png",
+                  },
+                  {
+                    label: "Credit Card (UI only)",
+                    value: "CARD",
                     icon: "https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg",
                   },
-                  {
-                    label: "Google Pay",
-                    icon: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Google_Pay_Logo.svg",
-                  },
-                  {
-                    label: "PayPal Credit",
-                    icon: "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
-                  },
-                ].map((method, i) => (
+                ].map((m) => (
                   <label
-                    key={i}
+                    key={m.value}
                     className="flex items-center gap-3 cursor-pointer"
                   >
                     <input
                       type="radio"
-                      name="payment"
+                      name="paymentMethod"
                       className="w-5 h-5 accent-[#3665f3]"
-                      defaultChecked={i === 0}
+                      checked={paymentMethod === m.value}
+                      onChange={() => setPaymentMethod(m.value)}
                     />
-                    <img src={method.icon} alt={method.label} className="h-5" />
-                    <span className="text-[15px] font-medium">
-                      {method.label}
-                    </span>
+                    <img src={m.icon} className="h-5" />
+                    <span className="text-[15px] font-medium">{m.label}</span>
                   </label>
                 ))}
               </div>
             </section>
 
+            {/* SHIPPING ADDRESS */}
             <ShipTo
               addresses={addresses}
               selectedAddressId={selectedAddressId}
@@ -331,24 +400,18 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
               onAddressChange={fetchAddresses}
             />
 
+            {/* REVIEW ITEMS */}
             <section className="border-t border-gray-200 pt-6">
               <h2 className="text-[20px] font-semibold mb-6">Review order</h2>
 
               {cartItems.length === 0 ? (
-                <p className="italic text-gray-500">Your cart is empty.</p>
+                <p>Your cart is empty.</p>
               ) : (
                 cartItems.map((group) => (
-                  <div
-                    key={group.seller._id}
-                    className="border-b border-gray-200 pb-6 mb-6 last:border-b-0 last:pb-0"
-                  >
-                    {/* Seller Header */}
+                  <div key={group.seller._id} className="border-b pb-6 mb-6">
                     <div className="flex items-center gap-2 text-[14px] text-gray-600 mb-1">
                       <span className="font-semibold">
                         Seller: {group.seller.username}
-                      </span>
-                      <span className="text-[12px] text-gray-500">
-                        (99% positive feedback - mock)
                       </span>
                     </div>
 
@@ -356,27 +419,19 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                       <div key={item._id} className="flex gap-4 pt-4">
                         <img
                           src={item.images?.[0]}
-                          alt={item.description}
-                          className="w-24 h-24 object-cover rounded-md border"
+                          className="w-24 h-24 object-cover border rounded-md"
                         />
                         <div>
-                          <span className="bg-blue-100 text-[#0053a0] text-[11px] px-2 py-0.5 rounded-full font-semibold">
-                            N/A SOLD (mock)
-                          </span>
-
                           <p className="font-semibold text-[15px] mt-2">
                             {item.description}
                           </p>
-
-                          <div className="flex items-center gap-2 mt-1">
-                            <p className="text-[15px] font-medium">
-                              US ${item.price ? item.price.toFixed(2) : "0.00"}
-                            </p>
-                          </div>
+                          <p className="text-[15px] font-medium mt-1">
+                            US ${item.price.toFixed(2)}
+                          </p>
 
                           <div className="flex items-center gap-3 mt-3">
                             <label className="text-[14px]">Quantity</label>
-                            <div className="flex items-center border border-gray-300 rounded-md">
+                            <div className="flex items-center border rounded-md">
                               <button
                                 onClick={() =>
                                   handleUpdateQuantity(
@@ -385,14 +440,16 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                                     "decrement"
                                   )
                                 }
-                                className="px-2 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-l-md disabled:opacity-50"
+                                className="px-2 py-1"
                                 disabled={item.quantity <= 1}
                               >
                                 -
                               </button>
-                              <span className="px-3 py-1 text-sm border-l border-r border-gray-300">
+
+                              <span className="px-3 py-1 border-l border-r">
                                 {item.quantity}
                               </span>
+
                               <button
                                 onClick={() =>
                                   handleUpdateQuantity(
@@ -401,31 +458,18 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                                     "increment"
                                   )
                                 }
-                                className="px-2 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-r-md"
+                                className="px-2 py-1"
                               >
                                 +
                               </button>
                             </div>
+
                             <button
                               onClick={() => handleRemoveItem(item._id)}
-                              className="text-[#3665f3] hover:underline text-[13px] bg-transparent border-none cursor-pointer"
+                              className="text-[#3665f3] text-[13px]"
                             >
                               Remove
                             </button>
-                          </div>
-
-                          <div className="mt-3 text-[13px] text-gray-700 leading-6">
-                            <p>
-                              Delivery:{" "}
-                              <span className="font-medium">
-                                Dec 24 — Jan 16 (mock)
-                              </span>
-                            </p>
-                            <p>eBay International Shipping</p>
-                            <p>US $46.73 (mock shipping for this item)</p>
-                            <p className="text-gray-500 text-[12px]">
-                              Import fees may apply on delivery
-                            </p>
                           </div>
                         </div>
                       </div>
@@ -435,6 +479,7 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
               )}
             </section>
 
+            {/* COUPONS */}
             <section className="border-t border-gray-200 pt-6">
               <h2 className="text-[20px] font-semibold mb-5">Coupons</h2>
               <p className="text-[14px] mb-4">
@@ -480,84 +525,51 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
             </section>
           </div>
 
-          {/* ==== RIGHT SIDE (Order Summary) ==== */}
+          {/* RIGHT SIDE — ORDER SUMMARY ========================= */}
           <div className="w-[30%]">
             <div className="sticky top-10 bg-[#f9f9f9] border border-gray-200 rounded-xl shadow-sm p-6">
               <h3 className="text-[20px] font-semibold mb-5">Order Summary</h3>
-              <div className="space-y-2 text-[15px] text-[#111820]">
+
+              <div className="space-y-2 text-[15px]">
                 <div className="flex justify-between">
                   <span>Items ({totalItemsCount})</span>
                   <span>US ${currentSubtotalUSD.toFixed(2)}</span>
                 </div>
+
                 <div className="flex justify-between">
-                  <div></div>
-                  <span>
-                    VND{" "}
-                    {(currentSubtotalUSD * USD_TO_VND_RATE).toLocaleString(
-                      "vi-VN"
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Shipping (mock)</span>
+                  <span>Shipping</span>
                   <span>US ${shippingUSD.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <div></div>
-                  <span>
-                    VND{" "}
-                    {(shippingUSD * USD_TO_VND_RATE).toLocaleString("vi-VN")}
-                  </span>
-                </div>
+
                 <div className="flex justify-between text-green-600">
-                  <span>Discount </span>
+                  <span>Discount</span>
                   <span>
-                    {" "}
                     {currentDiscountUSD > 0
                       ? `-US ${currentDiscountUSD.toFixed(2)}`
                       : "-"}
                   </span>
                 </div>
-                <hr className="my-3 border-gray-300" />
+
+                <hr className="my-3" />
+
                 <div className="flex justify-between font-semibold text-[17px]">
-                  <span>Order total</span>
+                  <span>Total</span>
                   <span>US ${currentTotalUSD.toFixed(2)}</span>
                 </div>
-                <p className="text-sm text-gray-500">
-                  {(currentTotalUSD * USD_TO_VND_RATE).toLocaleString("vi-VN")}{" "}
-                  VND
-                </p>
               </div>
-              <p className="text-[12px] text-gray-500 mt-4 leading-5">
-                With this purchase you agree to the{" "}
-                <a href="#" className="text-[#3665f3] hover:underline">
-                  eBay International Shipping terms and conditions
-                </a>
-                .
-              </p>
+
               <button
-                onClick={handlePaymentSuccess}
-                className={`w-full mt-6 py-3 font-semibold rounded-full ${
-                  isAddressSelected && !isProcessing
-                    ? "bg-[#3665f3] text-white hover:bg-[#2953c6]"
-                    : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                }`}
-                disabled={
-                  !isAddressSelected || cartItems.length === 0 || isProcessing
-                }
+                onClick={handlePayment}
+                disabled={isProcessing}
+                className="w-full mt-6 py-3 font-semibold rounded-full bg-[#3665f3] text-white hover:bg-[#2953c6]"
               >
-                {isProcessing ? "Processing..." : "Confirm and pay"}
+                {isProcessing ? "Processing..." : "Confirm and Pay"}
               </button>
+
               <p className="text-center text-xs text-gray-500 mt-3">
                 {isAddressSelected
-                  ? `Shipping to: ${selectedAddress?.fullname || ""}`
+                  ? `Shipping to: ${selectedAddress?.fullname}`
                   : "Please select a shipping address"}
-              </p>
-              <p className="text-center text-xs text-gray-400 mt-4">
-                Purchase protected by{" "}
-                <a href="#" className="text-[#3665f3] hover:underline">
-                  eBay Money Back Guarantee
-                </a>
               </p>
             </div>
           </div>
