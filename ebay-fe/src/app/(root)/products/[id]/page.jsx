@@ -21,17 +21,6 @@ export default function ProductDetail() {
   const [showPopup, setShowPopup] = useState(false);
   const [relatedItems, setRelatedItems] = useState([]);
 
-  // const handleAddToCart = async () => {
-  //   if (!product) return;
-  //   try {
-  //     await cartService.addToCart(product, quantity);
-  //     toast.success("Added to cart successfully!");
-  //     window.dispatchEvent(new Event("cart_updated"));
-  //   } catch (err) {
-  //     console.error("Add to cart error:", err);
-  //     toast.error("Failed to add to cart. Please try again.");
-  //   }
-  // };
   const handleAddToCart = async () => {
     if (!product) return;
     try {
@@ -468,16 +457,35 @@ export default function ProductDetail() {
               </a>
             </div>
 
+            {/* ACTION BUTTONS */}
             <div className="space-y-3 mb-6">
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full text-lg transition">
-                Buy It Now
-              </button>
-              <button
-                onClick={handleAddToCart}
-                className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 rounded-full text-lg transition"
-              >
-                Add to cart
-              </button>
+              {/* Nếu là AUCTION → Place bid */}
+              {product.isAuction ? (
+                <button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full text-lg transition"
+                  onClick={() => {
+                    // bạn có thể mở modal bid hoặc push sang trang auction
+                    console.log("Place bid");
+                  }}
+                >
+                  Place bid
+                </button>
+              ) : (
+                /* Nếu không phải auction → Buy It Now */
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full text-lg transition">
+                  Buy It Now
+                </button>
+              )}
+
+              {/* Add to cart CHỈ xuất hiện nếu KHÔNG phải đấu giá */}
+              {!product.isAuction && (
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 rounded-full text-lg transition"
+                >
+                  Add to cart
+                </button>
+              )}
             </div>
 
             <div className="space-y-3 text-sm border-t border-gray-200 pt-4">
