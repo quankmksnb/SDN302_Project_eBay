@@ -16,7 +16,7 @@ import couponRoutes from "./routes/couponRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
-import returnRoutes from "./routes/returnRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 connectDB();
 
 const hostname = process.env.HOST_NAME || "localhost";
@@ -46,7 +46,7 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/feedbacks", feedbackRoutes);
-app.use("/api/returns", returnRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).send("Wellcome to eBay BE!");
