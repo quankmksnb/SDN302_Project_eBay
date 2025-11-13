@@ -2,6 +2,7 @@
 import { SHIPPING_TOTAL_USD, USD_TO_VND_RATE } from "@/lib/constants";
 import React, { useState, useEffect } from "react";
 import cartService from "@/services/cartService";
+import orderService from "@/services/orderService";
 import { getAddresses } from "@/services/addressService";
 import ShipTo from "@/components/ui/CheckOut/ShipTo";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
   const router = useRouter();
   const [couponCode, setCouponCode] = useState("");
   const totalItemsCount = cart.totalItems || 0;
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [appliedCouponData, setAppliedCouponData] = useState(null);
 
@@ -111,7 +113,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
     }
     try {
       const data = await cartService.applyCoupon(code);
-      console.log(data);
       setAppliedCouponData({
         discountAmount: data.discountAmount,
         cartTotal: data.cartTotal,
@@ -131,7 +132,7 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
     }
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async () => {
     if (!isAddressSelected) {
       alert("Please select a shipping address before confirming payment.");
       return;
@@ -142,42 +143,63 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
       return;
     }
 
-    // 1. Chuẩn bị danh sách sản phẩm (items)
-    // Tách các sản phẩm từ cấu trúc nhóm theo seller thành một mảng phẳng
-    const orderItems = cartItems.flatMap((group) =>
-      group.products.map((item) => ({
-        productId: item._id, // Mã sản phẩm
-        quantity: item.quantity, // Số lượng
-        unitPrice: item.price, // Giá đơn vị
-      }))
-    );
+    if (isProcessing) {
+      return;
+    }
 
-    // 2. Xây dựng Payload Order
-    const orderPayload = {
-      // Dựa trên Order.js Schema:
-      buyerId: user.id, // Giả lập ID người mua
-      addressId: selectedAddressId, // ID địa chỉ đã chọn
-      totalPrice: parseFloat(currentTotalUSD.toFixed(2)), // Tổng tiền cuối cùng
-      status: "Paid", // Trạng thái sau khi giả lập thanh toán thành công
-      items: orderItems, // Danh sách sản phẩm
+    setIsProcessing(true);
 
-      couponCodeApplied: appliedCouponData ? cart.couponCode : null,
-      shippingCost: SHIPPING_TOTAL_USD,
-      discountAmount: parseFloat(currentDiscountUSD.toFixed(2)),
-    };
+    try {
+      const orderItems = cartItems.flatMap((group) =>
+        group.products.map((item) => ({
+          productId: item._id,
+          quantity: item.quantity,
+          unitPrice: item.price,
+        }))
+      );
 
-    // 3. Console log payload (Mô phỏng gửi API POST /api/orders)
-    console.log("=========================================");
-    console.log("✅ PAYMENT SUCCESSFUL. Order Payload to be sent to API:");
-    console.log(orderPayload);
-    console.log("=========================================");
+      const orderPayload = {
+        buyerId: user.id,
+        addressId: selectedAddressId,
+        totalPrice: parseFloat(currentTotalUSD.toFixed(2)),
+        status: "Paid",
+        items: orderItems,
+        couponCodeApplied: appliedCouponData ? cart.couponCode : null,
+        shippingCost: SHIPPING_TOTAL_USD,
+        discountAmount: parseFloat(currentDiscountUSD.toFixed(2)),
+      };
 
-    // try {
-    //    const response = await orderService.createOrder(orderPayload);
-    //    router.push(`/order/${response.data.orderId}`);
-    // } catch (error) {
-    //    console.error("Order creation failed:", error);
-    // }
+      console.log("=========================================");
+      console.log("✅ Creating order with payload:");
+      console.log(orderPayload);
+      console.log("=========================================");
+
+      const response = await orderService.createOrder(orderPayload);
+
+      console.log("Order created successfully:", response);
+
+      alert("Order created successfully!");
+
+      if (onCartUpdate) {
+        onCartUpdate();
+      }
+
+      const orderId = response.order?._id || response.orderId || response._id;
+      if (orderId) {
+        router.push(`/order/${orderId}`);
+      } else {
+        router.push("/orders");
+      }
+    } catch (error) {
+      console.error("Order creation failed:", error);
+      const errorMessage =
+        error.message ||
+        error.response?.data?.message ||
+        "Failed to create order. Please try again.";
+      alert(`Order creation failed: ${errorMessage}`);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -277,7 +299,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                         className="w-24 h-24 object-cover rounded-md border"
                       />
                       <div>
-                        {/* Mock Sold/OldPrice data */}
                         <span className="bg-blue-100 text-[#0053a0] text-[11px] px-2 py-0.5 rounded-full font-semibold">
                           N/A SOLD (mock)
                         </span>
@@ -292,7 +313,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                           </p>
                         </div>
 
-                        {/* Nút + / - */}
                         <div className="flex items-center gap-3 mt-3">
                           <label className="text-[14px]">Quantity</label>
                           <div className="flex items-center border border-gray-300 rounded-md">
@@ -332,7 +352,6 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
                             Remove
                           </button>
                         </div>
-                        {/* Kết thúc nút */}
 
                         <div className="mt-3 text-[13px] text-gray-700 leading-6">
                           <p>
@@ -355,12 +374,11 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
             )}
           </section>
 
-          {/* GIFT CARDS AND COUPONS (Giữ nguyên) */}
           <section className="border-t border-gray-200 pt-6">
             <h2 className="text-[20px] font-semibold mb-5">Coupons</h2>
             <p className="text-[14px] mb-4">
               Apply coupons or add eBay gift cards to your account. Once added,
-              gift cards can’t be removed.
+              gift cards can't be removed.
             </p>
             <div className="flex gap-3 mb-4">
               <input
@@ -458,13 +476,15 @@ const Checkout = ({ cart = {}, coupons = [], onCartUpdate }) => {
             <button
               onClick={handlePaymentSuccess}
               className={`w-full mt-6 py-3 font-semibold rounded-full ${
-                isAddressSelected
+                isAddressSelected && !isProcessing
                   ? "bg-[#3665f3] text-white hover:bg-[#2953c6]"
                   : "bg-gray-300 text-gray-600 cursor-not-allowed"
               }`}
-              disabled={!isAddressSelected || cartItems.length === 0}
+              disabled={
+                !isAddressSelected || cartItems.length === 0 || isProcessing
+              }
             >
-              Confirm and pay
+              {isProcessing ? "Processing..." : "Confirm and pay"}
             </button>
             <p className="text-center text-xs text-gray-500 mt-3">
               {isAddressSelected

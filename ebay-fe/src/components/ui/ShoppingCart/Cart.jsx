@@ -1,4 +1,5 @@
 "use client";
+import Loading from "@/components/shared/Loading";
 import { USD_TO_VND_RATE } from "@/lib/constants";
 import { getUserFromStorage } from "@/lib/utils";
 import cartService from "@/services/cartService";
@@ -57,7 +58,6 @@ const Cart = () => {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState([]);
   const router = useRouter();
-
 
   const fetchCart = async () => {
     setLoading(true);
@@ -129,11 +129,7 @@ const Cart = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading cart...
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
