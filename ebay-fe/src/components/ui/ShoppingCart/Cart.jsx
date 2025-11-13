@@ -272,9 +272,6 @@ const Cart = () => {
           )}
         </div>
       </div>
-      <div>
-        <AuctionPage />
-      </div>
     </div>
   );
 };
