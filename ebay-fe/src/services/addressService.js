@@ -1,4 +1,4 @@
-import api from "@/services"; // Giả sử index.js được export default là api, và import alias @/services trỏ đến nó
+import api from "@/services";
 
 /**
  * Lấy danh sách tất cả địa chỉ của người dùng hiện tại
@@ -7,7 +7,7 @@ import api from "@/services"; // Giả sử index.js được export default là
 export const getAddresses = async () => {
   try {
     const response = await api.get("/addresses");
-    return response.data.addresses; // Giả sử server trả về { success: true, addresses: [...] }
+    return response.data.addresses;
   } catch (error) {
     console.error("Error fetching addresses:", error);
     throw error;
@@ -21,7 +21,7 @@ export const getAddresses = async () => {
 export const createAddress = async (addressData) => {
   try {
     const response = await api.post("/addresses", addressData);
-    return response.data.address; // Giả sử server trả về { success: true, address: {...} }
+    return response.data.address;
   } catch (error) {
     console.error("Error creating address:", error);
     throw error;
@@ -35,7 +35,7 @@ export const createAddress = async (addressData) => {
 export const updateAddress = async (id, addressData) => {
   try {
     const response = await api.patch(`/addresses/${id}`, addressData);
-    return response.data.address; // Giả sử server trả về { success: true, address: {...} }
+    return response.data.address;
   } catch (error) {
     console.error(`Error updating address ${id}:`, error);
     throw error;
@@ -49,7 +49,7 @@ export const updateAddress = async (id, addressData) => {
 export const deleteAddress = async (id) => {
   try {
     const response = await api.delete(`/addresses/${id}`);
-    return response.data; // Server trả về { success: true, message: "Address deleted" }
+    return response.data;
   } catch (error) {
     console.error(`Error deleting address ${id}:`, error);
     throw error;

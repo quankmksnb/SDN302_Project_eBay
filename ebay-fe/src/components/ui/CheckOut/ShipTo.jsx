@@ -1,34 +1,30 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { createAddress, updateAddress } from "@/services/addressService"; // <--- IMPORT MỚI
+import {
+  createAddress,
+  deleteAddress,
+  updateAddress,
+} from "@/services/addressService";
 
-// Nhận addresses, selectedAddressId, setSelectedAddressId, và onAddressChange qua props
 const ShipTo = ({
   addresses,
   selectedAddressId,
   setSelectedAddressId,
   onAddressChange,
 }) => {
-  // Xóa state addresses mock
-  // const [addresses, setAddresses] = useState([...])
-
-  // Sử dụng props thay cho state cục bộ
-  // const [selectedId, setSelectedId] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
-    fullname: "", // Đổi tên trường từ 'name' sang 'fullname' theo Address Model
-    phone: "", // Đổi tên trường từ 'phone' sang 'phone'
-    street: "", // Đổi tên trường từ 'address' sang 'street' theo Address Model
+    fullname: "",
+    phone: "",
+    street: "",
     city: "",
-    state: "", // Thêm state
+    state: "",
     country: "Vietnam",
-    isDefault: false, // Thêm isDefault
+    isDefault: false,
   });
 
-  // Load dữ liệu địa chỉ vào form khi edit
   useEffect(() => {
     if (isAdding && formData._id) {
-      // Khi edit, cần đảm bảo các trường trong form match với object từ addresses
       const addrToEdit = addresses.find((a) => a._id === formData._id);
       if (addrToEdit) {
         setFormData({
@@ -37,7 +33,7 @@ const ShipTo = ({
           phone: addrToEdit.phone,
           street: addrToEdit.street,
           city: addrToEdit.city,
-          state: addrToEdit.state || "", // Thêm state
+          state: addrToEdit.state || "",
           country: addrToEdit.country,
           isDefault: addrToEdit.isDefault || false,
         });
@@ -45,17 +41,15 @@ const ShipTo = ({
     }
   }, [isAdding, formData._id, addresses]);
 
-  // Hàm chọn địa chỉ
   const handleSelect = (id) => {
     setSelectedAddressId(id);
   };
 
-  // Hàm chuẩn bị form để Edit
   const handleEdit = (id) => {
     const addr = addresses.find((a) => a._id === id);
     if (addr) {
       setFormData({
-        _id: addr._id, // Giữ lại ID để biết là đang update
+        _id: addr._id,
         fullname: addr.fullname,
         phone: addr.phone,
         street: addr.street,
@@ -68,15 +62,13 @@ const ShipTo = ({
     }
   };
 
-  // Hàm xóa địa chỉ
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this address?")) {
       try {
         await deleteAddress(id);
         alert("Address deleted successfully!");
-        onAddressChange(); // Gọi hàm re-fetch từ parent (Checkout.jsx)
+        onAddressChange();
         if (selectedAddressId === id) {
-          // Nếu xóa địa chỉ đang được chọn, chọn lại địa chỉ mặc định/đầu tiên sau khi re-fetch
           setSelectedAddressId(null);
         }
       } catch (error) {
@@ -114,12 +106,10 @@ const ShipTo = ({
         alert("Address added successfully!");
       }
 
-      onAddressChange(); // Gọi hàm re-fetch từ parent
+      onAddressChange();
       setIsAdding(false);
 
-      // Sau khi lưu thành công, nếu địa chỉ vừa lưu được đặt là mặc định, cần cập nhật selectedId
       if (formData.isDefault) {
-        // Re-fetch sẽ lo phần này, nên chỉ cần reset form
         setFormData({});
       }
     } catch (error) {
@@ -132,7 +122,6 @@ const ShipTo = ({
     <section className="border-t border-gray-200 pt-6">
       <h2 className="text-[20px] font-semibold mb-4">Ship to</h2>
 
-      {/* === ADD/EDIT FORM === */}
       {isAdding ? (
         <form
           onSubmit={handleSave}
@@ -143,7 +132,7 @@ const ShipTo = ({
             <input
               required
               type="text"
-              value={formData.fullname} // Sử dụng fullname
+              value={formData.fullname}
               onChange={(e) =>
                 setFormData({ ...formData, fullname: e.target.value })
               }
@@ -157,7 +146,7 @@ const ShipTo = ({
             <input
               required
               type="text"
-              value={formData.street} // Sử dụng street
+              value={formData.street}
               onChange={(e) =>
                 setFormData({ ...formData, street: e.target.value })
               }
@@ -323,7 +312,7 @@ const ShipTo = ({
               Add a new address
             </button>
             <button
-              onClick={() => setIsAdding(false)} // Thay thế alert bằng hành động đóng form/cancel
+              onClick={() => setIsAdding(false)}
               className="px-5 py-2 border border-[#3665f3] rounded-full text-[#3665f3] text-sm font-medium hover:bg-blue-50"
             >
               Cancel
