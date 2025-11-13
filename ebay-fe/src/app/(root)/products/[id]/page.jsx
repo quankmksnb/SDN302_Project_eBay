@@ -9,8 +9,11 @@ import {
 import { toast } from "react-hot-toast";
 import cartService from "@/services/cartService";
 import AddedToCartPopup from "@/components/ui/AddToCartStatus/AddToCartStatus";
+import { useRouter } from "next/navigation";
+import AuctionPage from "@/components/ui/Auction/AuctionPage";
 
 export default function ProductDetail() {
+  const router = useRouter();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -463,10 +466,7 @@ export default function ProductDetail() {
               {product.isAuction ? (
                 <button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-full text-lg transition"
-                  onClick={() => {
-                    // bạn có thể mở modal bid hoặc push sang trang auction
-                    console.log("Place bid");
-                  }}
+                  onClick={() => router.push(`/auction/${product._id}`)}
                 >
                   Place bid
                 </button>
@@ -652,6 +652,9 @@ export default function ProductDetail() {
               )}
             </div>
           )}
+        </div>
+        <div>
+          <AuctionPage />
         </div>
       </div>
     </main>

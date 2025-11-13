@@ -5,6 +5,7 @@ import { getUserFromStorage } from "@/lib/utils";
 import cartService from "@/services/cartService";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import AuctionPage from "../Auction/AuctionPage";
 
 const QuantityCounter = ({ initialQuantity, onQuantityChange }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -270,6 +271,9 @@ const Cart = () => {
             </div>
           )}
         </div>
+      </div>
+      <div>
+        <AuctionPage />
       </div>
     </div>
   );
