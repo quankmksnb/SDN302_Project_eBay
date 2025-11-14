@@ -208,7 +208,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"email\": \"vinhhv28@gmail.com\",\r\n  \"password\": \"1234678\"\r\n}",
+							"raw": "{\r\n  \"email\": \"vinhhv28@gmail.com\",\r\n  \"password\": \"12345678\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -376,7 +376,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MDZlODdjMzNmOTkwNjNkMzI5NWQ2YSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzYyMDYwOTgyLCJleHAiOjE3NjI2NjU3ODJ9.SV63qATRqa-ejqKKNBPut_-Zy6zDDpFBr-ls_VoEakg",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTJlNGI2Y2FiNzIxOWE2MzZmNDU2YyIsImVtYWlsIjoidmluaGh2MjhAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NjI4NzM5NDEsImV4cCI6MTc2Mjk2MDM0MX0.MT1Un-_2f1V9rCliHAkwLeCBHPcXQ2AKo7oL20k3qDc",
 									"type": "string"
 								}
 							]
@@ -384,7 +384,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:9999/api/cart",
+							"raw": "http://localhost:9999/api/cart/by-seller",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -392,7 +392,8 @@
 							"port": "9999",
 							"path": [
 								"api",
-								"cart"
+								"cart",
+								"by-seller"
 							]
 						}
 					},
@@ -594,7 +595,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"code\": \"DISCOUNT50\",\r\n  \"discountPercent\": 50,\r\n  \"startDate\": \"2025-11-01T00:00:00.000Z\",\r\n  \"endDate\": \"2025-12-31T23:59:59.999Z\",\r\n  \"status\": \"active\",\r\n  \"type\": \"global\",\r\n  \"productIds\": [],\r\n  \"maxUsage\": 1000,\r\n  \"maxUsagePerUser\": 5,\r\n  \"minOrderValue\": 0,\r\n  \"maxDiscountAmount\": 500000\r\n}\r\n",
+							"raw": "{\r\n  \"code\": \"DISCOUNTChovaydo2\",\r\n  \"discountPercent\": 50,\r\n  \"startDate\": \"2025-11-01T00:00:00.000Z\",\r\n  \"endDate\": \"2025-12-31T23:59:59.999Z\",\r\n  \"status\": \"active\",\r\n  \"type\": \"product\",\r\n  \"productIds\": [],\r\n  \"maxUsage\": 1000,\r\n  \"maxUsagePerUser\": 5,\r\n  \"minOrderValue\": 0,\r\n  \"maxDiscountAmount\": 500000,\r\n  \"targetUserIds\": [\"6913e0539ff199216cac7799\"]\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -837,6 +838,89 @@
 								"api",
 								"addresses",
 								"6912cd4eeddec42745072226"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "updateStatusOrder",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "updateStatusShipping",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n \"status\" : \"Delivered\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9999/api/orders/shipping/6915ea90158e7ad10547caeb/status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"orders",
+								"shipping",
+								"6915ea90158e7ad10547caeb",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateReturnRequestStatus",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n \"status\" : \"rejected\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9999/api/orders/returns/691628bd8adcf9dce8e46b21/status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9999",
+							"path": [
+								"api",
+								"orders",
+								"returns",
+								"691628bd8adcf9dce8e46b21",
+								"status"
 							]
 						}
 					},
