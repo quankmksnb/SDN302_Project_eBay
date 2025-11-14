@@ -1,19 +1,28 @@
 # SDN302_Project_eBay
 
-Clone về check out sang develop và npm i sau đó chạy.
-Mở git bash chạy lệnh
-B1: git clone https://github.com/quankmksnb/SDN302_Project_eBay.git
-B2: git checkout develop                  "develop là tên nhánh, sau muốn về nhánh mình thì thay vào chộ develop"
-B3: Tạo files .env:
-    FE: 
+B1: Tạo files .env:
+    .env FE: 
     NEXT_PUBLIC_API_URL=http://localhost:9999/ (thay bằng backend của mình)
-    BE: 
-    PORT=9999
-    HOST_NAME=locallhost
+    .env BE: 
+    PORT=9999 (port for server)
     MONGO_URI=mongodb://127.0.0.1:27017/
-    DB_NAME=ebay_clone
-B4: Chạy FE: npm run dev
-    Chạy BE: npm start
+    DB_NAME=ebay-clone
+    HOST_NAME=localhost
+    JWT_SECRET=your_access_secret_key
+    JWT_REFRESH_SECRET=your_refresh_secret_key
+    JWT_ACCESS_SECRET=access_secret_key_example
 
-Sau mỗi lần merge request
-B1: git pull develop
+    EMAIL_USER=(Your email)
+    EMAIL_PASS=(Your app password)
+
+    GOOGLE_CLIENT_ID=(Your google client id)
+    GOOGLE_CLIENT_SECRET=(Your google secret id)
+    GOOGLE_CALLBACK_URL=(Your callback url)
+    SESSION_SECRET=(Your session secret key)
+
+    FRONTEND_URL=http://localhost:3000 (Your FE URL here)
+    
+B2: chạy: npm i
+    cho cả be và fe
+B3: Chạy FE: npm run dev
+    Chạy BE: npm start
