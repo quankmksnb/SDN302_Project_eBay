@@ -35,10 +35,24 @@ export const placeBid = async (productId, bidAmount, buyerId, maxAutoBid) => {
   }
 };
 
+const updateAutoBid = async (productId, buyerId, maxAutoBid) => {
+  return api.put(`/bid/${productId}/autoBid`, {
+    buyerId,
+    maxAutoBid,
+  });
+};
+
+export const getUserAutoBid = async (productId, userId) => {
+  const res = await api.get(`/bid/${productId}/autobid?userId=${userId}`);
+  return res.data;
+};
+
 
 const bidService = {
   getBidHistoryByProduct,
   placeBid,
+  updateAutoBid,
+  getUserAutoBid
 };
 
 export default bidService;

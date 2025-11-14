@@ -25,12 +25,54 @@ export default function AuctionPage({ productId }) {
   const [modalType, setModalType] = useState("info"); // success | error | warning | confirm
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [autoBid, setAutoBid] = useState("");
+  const [savingAuto, setSavingAuto] = useState(false);
 
   const showModal = (type, title, message) => {
     setModalType(type);
     setModalTitle(title);
     setModalMessage(message);
     setModalOpen(true);
+  };
+
+  const handleSetAutoBid = async () => {
+    const user = getUserFromStorage(localStorage, sessionStorage);
+    if (!user) {
+      return showModal(
+        "error",
+        "Login required",
+        "Please login to set auto-bid"
+      );
+    }
+
+    const buyerId = user.id || user._id;
+    const maxAutoBid = Number(autoBid);
+
+    if (!maxAutoBid || maxAutoBid <= 0) {
+      return showModal(
+        "warning",
+        "Invalid",
+        "Please enter a valid auto-bid amount."
+      );
+    }
+
+    try {
+      setSavingAuto(true);
+
+      await bidService.updateAutoBid(product.id, buyerId, maxAutoBid);
+
+      showModal(
+        "success",
+        "Auto-bid updated",
+        "Your maximum auto-bid has been updated!"
+      );
+
+      await fetchBidData(); // reload dữ liệu
+    } catch (err) {
+      showModal("error", "Update failed", err.response?.data?.message);
+    } finally {
+      setSavingAuto(false);
+    }
   };
 
   // ===== Load dữ liệu đấu giá theo productId =====
@@ -55,9 +97,33 @@ export default function AuctionPage({ productId }) {
     }
   };
 
+  // ===== Load dữ liệu đấu giá theo productId =====
   useEffect(() => {
     if (productId) {
       fetchBidData();
+    }
+  }, [productId]);
+
+  // ===== Load AutoBid của user =====
+  useEffect(() => {
+    const loadAutoBid = async () => {
+      const user = getUserFromStorage(localStorage, sessionStorage);
+      if (!user) return;
+
+      const userId = user.id || user._id;
+
+      try {
+        const data = await bidService.getUserAutoBid(productId, userId);
+        if (data.success && data.autoBid) {
+          setAutoBid(data.autoBid); // fill vào input FE
+        }
+      } catch (err) {
+        console.error("Error loading autoBid:", err);
+      }
+    };
+
+    if (productId) {
+      loadAutoBid();
     }
   }, [productId]);
 
@@ -208,6 +274,23 @@ export default function AuctionPage({ productId }) {
           >
             {placing ? "Placing..." : "Place bid"}
           </button>
+          <div className="mt-4 flex gap-4">
+            <input
+              type="number"
+              placeholder="Enter max auto-bid"
+              className="border rounded-lg px-4 py-3 w-72 text-lg"
+              value={autoBid}
+              onChange={(e) => setAutoBid(e.target.value)}
+            />
+
+            <button
+              onClick={handleSetAutoBid}
+              disabled={savingAuto}
+              className="bg-purple-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-purple-700 transition disabled:opacity-60"
+            >
+              {savingAuto ? "Saving..." : "Set Auto Bid"}
+            </button>
+          </div>
         </div>
       </div>
 
